@@ -206,6 +206,25 @@
             margin-top: 2px;
         }
 
+        .history-item-delete {
+            opacity: 0;
+            color: #ff4d4f;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .history-item:hover .history-item-delete {
+            opacity: 1;
+        }
+
+        .history-item-delete:hover {
+            background: #fff1f0;
+            color: #cf1322;
+        }
+
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -982,7 +1001,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="header-title">
-                    <h1><i class="fas fa-comment-medical"></i> 逸仙智检</h1>
+                    <h1><img src="/static/images/owl-mascot.png" alt="逸仙" style="width: 28px; height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 50%;"> 逸仙智检</h1>
                 </div>
             </div>
         </div>
@@ -1235,6 +1254,9 @@
         window.addEventListener('load', function () {
             loadHistory();
             
+            // 初始化语音识别
+            initSpeechRecognition();
+            
             // 添加粘贴事件监听
             document.addEventListener('paste', handlePaste);
         });
@@ -1353,8 +1375,30 @@
                         <div class="history-item-title">${chat.title}</div>
                         <div class="history-item-time">${time}</div>
                     </div>
+                    <div class="history-item-delete" onclick="event.stopPropagation(); deleteChat('${chat.id}')" title="删除对话">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
                 </div>
             `;
+        }
+
+        // 删除对话
+        function deleteChat(chatId) {
+            if (!confirm('确定要删除这条对话记录吗？')) {
+                return;
+            }
+
+            // 从历史记录中移除
+            chatHistory = chatHistory.filter(chat => chat.id !== chatId);
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+
+            // 如果删除的是当前对话，清空聊天区域并开始新对话
+            if (chatId === currentChatId) {
+                startNewChat();
+            }
+
+            // 重新渲染历史记录
+            renderHistory();
         }
 
         // 保存当前对话
@@ -1815,7 +1859,11 @@
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-user-md"></i>';
+            if (type === 'user') {
+                avatar.innerHTML = '<i class="fas fa-user"></i>';
+            } else {
+                avatar.innerHTML = '<img src="/static/images/owl-mascot.png" alt="小鹰" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">';
+            }
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
@@ -1866,7 +1914,7 @@
 
             typingDiv.innerHTML = `
                 <div class="message-avatar">
-                    <i class="fas fa-user-md"></i>
+                    <img src="/static/images/owl-mascot.png" alt="小鹰" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                 </div>
                 <div class="message-content">
                     <div class="typing-indicator">
@@ -1971,31 +2019,96 @@
             event.target.value = '';
         }
 
-        // 语音录制
+        // 语音识别相关变量
+        let recognition = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+
+        // 初始化语音识别
+        function initSpeechRecognition() {
+            // 检查浏览器是否支持Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'zh-CN'; // 设置中文识别
+                recognition.continuous = false; // 单次识别
+                recognition.interimResults = false; // 不返回临时结果
+                
+                recognition.onstart = function() {
+                    console.log('语音识别已启动');
+                };
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    console.log('识别结果:', transcript);
+                    
+                    // 将识别结果填入输入框
+                    const messageInput = document.getElementById('messageInput');
+                    messageInput.value = transcript;
+                    autoResize(messageInput);
+                    
+                    // 自动发送消息
+                    setTimeout(() => {
+                        sendMessage();
+                    }, 500);
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('语音识别错误:', event.error);
+                    alert('语音识别失败: ' + event.error + '\n请检查麦克风权限或尝试其他输入方式');
+                    const voiceBtn = document.getElementById('voiceBtn');
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    isRecording = false;
+                };
+                
+                recognition.onend = function() {
+                    console.log('语音识别已结束');
+                    const voiceBtn = document.getElementById('voiceBtn');
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    isRecording = false;
+                };
+            }
+        }
+
+        // 语音录制功能
         function toggleVoiceRecording() {
             const voiceBtn = document.getElementById('voiceBtn');
-            isRecording = !isRecording;
-
-            if (isRecording) {
+            
+            if (!isRecording) {
+                // 开始录音
+                isRecording = true;
                 voiceBtn.classList.add('recording');
                 voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
-                // 这里可以添加实际的语音录制逻辑
+                
+                // 优先使用Web Speech API
+                if (recognition) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.error('无法启动语音识别:', e);
+                        alert('无法启动语音识别，请确保已授权麦克风权限');
+                        voiceBtn.classList.remove('recording');
+                        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                        isRecording = false;
+                    }
+                } else {
+                    // 浏览器不支持Web Speech API
+                    alert('您的浏览器不支持语音识别功能\n建议使用Chrome、Edge或Safari浏览器');
+                    voiceBtn.classList.remove('recording');
+                    voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                    isRecording = false;
+                }
             } else {
+                // 停止录音
+                if (recognition) {
+                    recognition.stop();
+                }
+                isRecording = false;
                 voiceBtn.classList.remove('recording');
                 voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-                // 处理录音结束
-                const initialView = document.getElementById('initialView');
-                if (initialView) {
-                    initialView.classList.add('hidden');
-                }
-                const voiceText = '我想了解一下体检项目推荐';
-                addMessage('user', '[语音消息] ' + voiceText);
-                setTimeout(async () => {
-                    showTypingIndicator();
-                    const response = await generateResponse(voiceText);
-                    hideTypingIndicator();
-                    addMessage('assistant', response);
-                }, 300);
             }
         }
 

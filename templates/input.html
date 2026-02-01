@@ -77,8 +77,8 @@
     <div class="py-16 px-4">
         <div class="max-w-md mx-auto bg-white rounded-xl shadow-sm p-8">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fa fa-user text-primary text-2xl"></i>
+                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                    <img src="/static/images/owl-mascot.png" alt="逸仙" class="w-full h-full object-cover">
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800">用户信息输入</h2>
                 <p class="text-gray-600 mt-2">请输入您的基本信息，以便我们为您提供个性化的健康评估</p>
@@ -120,6 +120,32 @@
                         required>
                 </div>
 
+                <!-- 居住地址 -->
+                <div>
+                    <label class="form-label">居住地址</label>
+                    <div class="space-y-3">
+                        <!-- 省份 -->
+                        <select id="province" name="province" class="form-input" required onchange="loadCities()">
+                            <option value="">请选择省份</option>
+                        </select>
+                        
+                        <!-- 城市 -->
+                        <select id="city" name="city" class="form-input" required onchange="loadDistricts()" disabled>
+                            <option value="">请先选择省份</option>
+                        </select>
+                        
+                        <!-- 区/县 -->
+                        <select id="district" name="district" class="form-input" required onchange="loadStreets()" disabled>
+                            <option value="">请先选择城市</option>
+                        </select>
+                        
+                        <!-- 街道/乡镇 -->
+                        <select id="street" name="street" class="form-input" required disabled>
+                            <option value="">请先选择区/县</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- 提交按钮 -->
                 <div class="pt-4">
                     <button type="submit" class="btn-primary w-full text-lg">
@@ -143,6 +169,156 @@
             </p>
         </div>
     </footer>
+
+    <script>
+        // 中国地址数据（简化版，包含主要城市）
+        const addressData = {
+            "广东省": {
+                "广州市": {
+                    "海珠区": ["赤岗街道", "新港街道", "昌岗街道", "江南中街道", "滨江街道", "素社街道", "海幢街道", "南华西街道", "龙凤街道", "沙园街道"],
+                    "天河区": ["五山街道", "员村街道", "车陂街道", "石牌街道", "天河南街道", "林和街道", "沙东街道", "兴华街道", "棠下街道", "天园街道"],
+                    "越秀区": ["洪桥街道", "北京街道", "六榕街道", "流花街道", "光塔街道", "人民街道", "东山街道", "农林街道", "梅花村街道", "黄花岗街道"],
+                    "荔湾区": ["沙面街道", "岭南街道", "华林街道", "多宝街道", "昌华街道", "逢源街道", "龙津街道", "金花街道", "彩虹街道", "南源街道"],
+                    "白云区": ["三元里街道", "松洲街道", "景泰街道", "同德街道", "黄石街道", "棠景街道", "新市街道", "同和街道", "京溪街道", "永平街道"],
+                    "番禺区": ["市桥街道", "沙头街道", "东环街道", "桥南街道", "小谷围街道", "大石街道", "洛浦街道", "石壁街道", "钟村街道", "大龙街道"]
+                },
+                "深圳市": {
+                    "福田区": ["南园街道", "园岭街道", "福田街道", "沙头街道", "香蜜湖街道", "梅林街道", "莲花街道", "华富街道", "福保街道", "华强北街道"],
+                    "罗湖区": ["桂园街道", "黄贝街道", "东门街道", "翠竹街道", "南湖街道", "笋岗街道", "东湖街道", "莲塘街道", "东晓街道", "清水河街道"],
+                    "南山区": ["南头街道", "南山街道", "沙河街道", "蛇口街道", "招商街道", "粤海街道", "桃源街道", "西丽街道", "前海合作区"],
+                    "宝安区": ["新安街道", "西乡街道", "福永街道", "沙井街道", "松岗街道", "石岩街道", "新桥街道", "航城街道", "福海街道", "燕罗街道"]
+                },
+                "珠海市": {
+                    "香洲区": ["香湾街道", "狮山街道", "翠香街道", "梅华街道", "前山街道", "拱北街道", "吉大街道", "南屏街道", "湾仔街道", "万山海洋开发试验区"],
+                    "金湾区": ["三灶镇", "红旗镇", "南水镇", "平沙镇"],
+                    "斗门区": ["井岸镇", "白蕉镇", "斗门镇", "乾务镇", "莲洲镇"]
+                }
+            },
+            "北京市": {
+                "市辖区": {
+                    "东城区": ["东华门街道", "景山街道", "交道口街道", "安定门街道", "北新桥街道", "东四街道", "朝阳门街道", "建国门街道", "东直门街道", "和平里街道"],
+                    "西城区": ["西长安街街道", "新街口街道", "月坛街道", "展览路街道", "德胜街道", "金融街街道", "什刹海街道", "大栅栏街道", "天桥街道", "椿树街道"],
+                    "朝阳区": ["建外街道", "朝外街道", "呼家楼街道", "三里屯街道", "左家庄街道", "香河园街道", "和平街街道", "安贞街道", "亚运村街道", "小关街道"],
+                    "海淀区": ["万寿路街道", "永定路街道", "羊坊店街道", "甘家口街道", "八里庄街道", "紫竹院街道", "北下关街道", "北太平庄街道", "学院路街道", "中关村街道"],
+                    "丰台区": ["右安门街道", "太平桥街道", "西罗园街道", "大红门街道", "南苑街道", "东高地街道", "东铁匠营街道", "卢沟桥街道", "丰台街道", "新村街道"]
+                }
+            },
+            "上海市": {
+                "市辖区": {
+                    "黄浦区": ["南京东路街道", "外滩街道", "半淞园路街道", "小东门街道", "豫园街道", "老西门街道", "五里桥街道", "打浦桥街道", "淮海中路街道", "瑞金二路街道"],
+                    "徐汇区": ["天平路街道", "湖南路街道", "斜土路街道", "枫林路街道", "长桥街道", "田林街道", "虹梅路街道", "康健新村街道", "徐家汇街道", "凌云路街道"],
+                    "浦东新区": ["潍坊新村街道", "陆家嘴街道", "周家渡街道", "塘桥街道", "上钢新村街道", "南码头路街道", "沪东新村街道", "金杨新村街道", "洋泾街道", "浦兴路街道"],
+                    "杨浦区": ["定海路街道", "平凉路街道", "江浦路街道", "四平路街道", "控江路街道", "长白新村街道", "延吉新村街道", "殷行街道", "大桥街道", "五角场街道"]
+                }
+            },
+            "浙江省": {
+                "杭州市": {
+                    "上城区": ["湖滨街道", "清波街道", "小营街道", "望江街道", "南星街道", "紫阳街道", "九堡街道", "彭埠街道", "笕桥街道", "丁兰街道"],
+                    "西湖区": ["北山街道", "灵隐街道", "西溪街道", "翠苑街道", "文新街道", "古荡街道", "留下街道", "转塘街道", "蒋村街道", "西溪街道"],
+                    "拱墅区": ["米市巷街道", "湖墅街道", "小河街道", "和睦街道", "拱宸桥街道", "大关街道", "上塘街道", "祥符街道", "康桥街道", "半山街道"]
+                }
+            },
+            "江苏省": {
+                "南京市": {
+                    "玄武区": ["梅园新村街道", "新街口街道", "玄武门街道", "后宰门街道", "锁金村街道", "红山街道", "孝陵卫街道"],
+                    "秦淮区": ["五老村街道", "建康路街道", "洪武路街道", "大光路街道", "瑞金路街道", "月牙湖街道", "光华路街道", "朝天宫街道", "秦虹街道", "中华门街道"],
+                    "鼓楼区": ["宁海路街道", "华侨路街道", "湖南路街道", "中央门街道", "挹江门街道", "江东街道", "凤凰街道", "下关街道", "热河南路街道", "幕府山街道"]
+                }
+            }
+        };
+
+        // 页面加载时初始化省份列表
+        window.onload = function() {
+            loadProvinces();
+        };
+
+        // 加载省份
+        function loadProvinces() {
+            const provinceSelect = document.getElementById('province');
+            provinceSelect.innerHTML = '<option value="">请选择省份</option>';
+            
+            Object.keys(addressData).forEach(province => {
+                const option = document.createElement('option');
+                option.value = province;
+                option.textContent = province;
+                provinceSelect.appendChild(option);
+            });
+        }
+
+        // 加载城市
+        function loadCities() {
+            const province = document.getElementById('province').value;
+            const citySelect = document.getElementById('city');
+            const districtSelect = document.getElementById('district');
+            const streetSelect = document.getElementById('street');
+            
+            // 重置后续选择
+            citySelect.innerHTML = '<option value="">请选择城市</option>';
+            districtSelect.innerHTML = '<option value="">请先选择城市</option>';
+            streetSelect.innerHTML = '<option value="">请先选择区/县</option>';
+            districtSelect.disabled = true;
+            streetSelect.disabled = true;
+            
+            if (province && addressData[province]) {
+                citySelect.disabled = false;
+                Object.keys(addressData[province]).forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            } else {
+                citySelect.disabled = true;
+            }
+        }
+
+        // 加载区/县
+        function loadDistricts() {
+            const province = document.getElementById('province').value;
+            const city = document.getElementById('city').value;
+            const districtSelect = document.getElementById('district');
+            const streetSelect = document.getElementById('street');
+            
+            // 重置后续选择
+            districtSelect.innerHTML = '<option value="">请选择区/县</option>';
+            streetSelect.innerHTML = '<option value="">请先选择区/县</option>';
+            streetSelect.disabled = true;
+            
+            if (province && city && addressData[province][city]) {
+                districtSelect.disabled = false;
+                Object.keys(addressData[province][city]).forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+            } else {
+                districtSelect.disabled = true;
+            }
+        }
+
+        // 加载街道
+        function loadStreets() {
+            const province = document.getElementById('province').value;
+            const city = document.getElementById('city').value;
+            const district = document.getElementById('district').value;
+            const streetSelect = document.getElementById('street');
+            
+            streetSelect.innerHTML = '<option value="">请选择街道/乡镇</option>';
+            
+            if (province && city && district && addressData[province][city][district]) {
+                streetSelect.disabled = false;
+                addressData[province][city][district].forEach(street => {
+                    const option = document.createElement('option');
+                    option.value = street;
+                    option.textContent = street;
+                    streetSelect.appendChild(option);
+                });
+            } else {
+                streetSelect.disabled = true;
+            }
+        }
+    </script>
 </body>
 
 </html>

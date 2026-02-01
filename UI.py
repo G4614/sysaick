@@ -161,6 +161,12 @@ def submit_user_info():
     height = float(request.form.get('height', 0))
     weight = float(request.form.get('weight', 0))
     
+    # 获取地址信息
+    province = request.form.get('province', '')
+    city = request.form.get('city', '')
+    district = request.form.get('district', '')
+    street = request.form.get('street', '')
+    
     # 计算BMI
     bmi = weight / ((height / 100) ** 2) if height > 0 else 0
     
@@ -178,10 +184,17 @@ def submit_user_info():
         'height': height,
         'weight': weight,
         'bmi': round(bmi, 2),
-        'age_group': age_group
+        'age_group': age_group,
+        'address': {
+            'province': province,
+            'city': city,
+            'district': district,
+            'street': street,
+            'full_address': f"{province}{city}{district}{street}"
+        }
     }
     
-    return redirect(url_for('select_option'))
+    return redirect(url_for('chat'))
 
 @app.route('/select_option')
 def select_option():
@@ -450,6 +463,12 @@ def api_chat():
         system_prompt += f"\n体重：{user_info.get('weight', '未知')}kg"
         system_prompt += f"\nBMI：{user_info.get('bmi', '未知')}"
         system_prompt += f"\n年龄段：{user_info.get('age_group', '未知')}"
+        
+        # 添加地址信息
+        address_info = user_info.get('address', {})
+        if address_info and address_info.get('city'):
+            system_prompt += f"\n居住地址：{address_info.get('full_address', '未提供')}"
+            system_prompt += f"\n\n在推荐医院时，请优先考虑用户所在地区（{address_info.get('city')}）的医院。"
     
     # 构建用户消息内容（支持图片）
     if image_base64:
@@ -516,9 +535,15 @@ def api_chat():
 
 @app.route('/api/hospital_prices', methods=['POST'])
 def get_hospital_prices():
-    """获取医院价格数据"""
+    """获取医院价格数据（根据用户地址动态调整）"""
     data = request.get_json()
     check_item = data.get('checkItem', '')
+    
+    # 获取用户地址信息
+    user_info = session.get('user_info', {})
+    user_address = user_info.get('address', {})
+    user_city = user_address.get('city', '')
+    user_district = user_address.get('district', '')
     
     # 查找匹配的检查项目
     matched_item = None
@@ -532,10 +557,32 @@ def get_hospital_prices():
     
     # 返回对应的医院价格数据
     if matched_item and matched_item in hospital_prices:
+        hospitals = hospital_prices[matched_item].copy()
+        
+        # 根据用户地址调整医院列表和距离信息
+        if user_city:
+            # 如果用户在广州，显示广州的医院
+            if '广州' in user_city:
+                # 保持原有顺序，中山大学孙逸仙纪念医院优先
+                for hospital in hospitals:
+                    # 根据用户区域调整距离（简化计算）
+                    if user_district:
+                        if '海珠' in user_district and '孙逸仙' in hospital['name']:
+                            hospital['distance'] = '800m'  # 孙逸仙在海珠区
+                        elif '天河' in user_district and '省人民' in hospital['name']:
+                            hospital['distance'] = '1.5km'
+                        # 可以根据实际情况添加更多区域判断
+            
+            # 为非广州用户添加地域提示
+            elif '深圳' in user_city or '珠海' in user_city:
+                # 可以后续扩展添加深圳、珠海的医院数据
+                pass
+        
         return {
             'success': True,
             'checkItem': matched_item,
-            'hospitals': hospital_prices[matched_item]
+            'hospitals': hospitals,
+            'userLocation': user_address.get('full_address', '未提供')
         }
     else:
         return {'success': False, 'message': '未找到该检查项目的价格信息'}
