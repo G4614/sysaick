@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect, url_for
 import json
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'
 
 # 检验项目分类数据
 test_categories = [
@@ -56,9 +57,250 @@ sample_data = {
     ]
 }
 
+# 年龄段分组数据
+age_groups = {
+    "青少年": {"range": "18岁以下", "min": 0, "max": 18},
+    "青壮年": {"range": "18-35岁", "min": 18, "max": 35},
+    "中青年": {"range": "36-50岁", "min": 36, "max": 50},
+    "老年": {"range": "51岁以上", "min": 51, "max": 150}
+}
+
+# 不同年龄段的推荐体检套餐数据
+recommended_packages = {
+    "青少年": [
+        {"id": 1, "name": "青少年基础套餐", "description": "适合青少年的基础体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "心电图"]},
+        {"id": 2, "name": "青少年全面套餐", "description": "适合青少年的全面体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "心电图", "胸部X线", "腹部B超", "微量元素"]}
+    ],
+    "青壮年": [
+        {"id": 3, "name": "青壮年基础套餐", "description": "适合青壮年的基础体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "血脂", "血糖", "心电图"]},
+        {"id": 4, "name": "青壮年全面套餐", "description": "适合青壮年的全面体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "血脂", "血糖", "心电图", "胸部CT", "腹部彩超", "甲状腺彩超"]}
+    ],
+    "中青年": [
+        {"id": 5, "name": "中青年基础套餐", "description": "适合中青年的基础体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "血脂", "血糖", "心电图", "肿瘤标志物"]},
+        {"id": 6, "name": "中青年全面套餐", "description": "适合中青年的全面体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "血脂", "血糖", "心电图", "肿瘤标志物", "胸部CT", "腹部彩超", "甲状腺彩超", "心脏彩超"]}
+    ],
+    "老年": [
+        {"id": 7, "name": "老年基础套餐", "description": "适合老年的基础体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "血脂", "血糖", "心电图", "肿瘤标志物", "骨密度"]},
+        {"id": 8, "name": "老年全面套餐", "description": "适合老年的全面体检项目", "items": ["血常规", "尿常规", "肝功能", "肾功能", "血脂", "血糖", "心电图", "肿瘤标志物", "骨密度", "胸部CT", "腹部彩超", "甲状腺彩超", "心脏彩超", "头颅MRI"]}
+    ]
+}
+
+# 基础疾病选项
+basic_diseases = [
+    "高血压", "糖尿病", "冠心病", "脑血管疾病", "慢性肾病",
+    "慢性肝病", "甲状腺疾病", "肿瘤病史", "自身免疫性疾病", "其他"
+]
+
+# 不良嗜好选项
+bad_habits = [
+    "吸烟", "喝酒", "熬夜", "缺乏运动", "不健康饮食"
+]
+
 @app.route('/')
 def index():
-    return render_template('index.html', categories=test_categories, data=sample_data)
+    return redirect(url_for('input_user_info'))
+
+@app.route('/input')
+def input_user_info():
+    return render_template('input.html')
+
+@app.route('/submit_user_info', methods=['POST'])
+def submit_user_info():
+    gender = request.form.get('gender')
+    age = int(request.form.get('age', 0))
+    height = float(request.form.get('height', 0))
+    weight = float(request.form.get('weight', 0))
+    
+    # 计算BMI
+    bmi = weight / ((height / 100) ** 2) if height > 0 else 0
+    
+    # 确定年龄段
+    age_group = "青少年"
+    for group, info in age_groups.items():
+        if info['min'] <= age <= info['max']:
+            age_group = group
+            break
+    
+    # 存储用户信息到会话
+    session['user_info'] = {
+        'gender': gender,
+        'age': age,
+        'height': height,
+        'weight': weight,
+        'bmi': round(bmi, 2),
+        'age_group': age_group
+    }
+    
+    return redirect(url_for('select_option'))
+
+@app.route('/select_option')
+def select_option():
+    if 'user_info' not in session:
+        return redirect(url_for('input_user_info'))
+    return render_template('select_option.html')
+
+@app.route('/package_selection')
+def package_selection():
+    if 'user_info' not in session:
+        return redirect(url_for('input_user_info'))
+    
+    user_info = session['user_info']
+    age_group = user_info['age_group']
+    packages = recommended_packages.get(age_group, [])
+    
+    return render_template('package_selection.html', 
+                         user_info=user_info,
+                         age_group=age_group,
+                         packages=packages,
+                         basic_diseases=basic_diseases,
+                         bad_habits=bad_habits)
+
+@app.route('/analyze_report')
+def analyze_report():
+    if 'user_info' not in session:
+        return redirect(url_for('input_user_info'))
+    
+    user_info = session['user_info']
+    return render_template('analyze_report.html', user_info=user_info)
+
+@app.route('/submit_health_assessment', methods=['POST'])
+def submit_health_assessment():
+    if 'user_info' not in session:
+        return redirect(url_for('input_user_info'))
+    
+    # 获取用户提交的健康评估信息
+    diseases = request.form.getlist('diseases')
+    habits = request.form.getlist('habits')
+    other_info = request.form.get('other_info', '')
+    
+    # 存储健康评估信息到会话
+    session['health_assessment'] = {
+        'diseases': diseases,
+        'habits': habits,
+        'other_info': other_info
+    }
+    
+    # 获取用户基本信息
+    user_info = session['user_info']
+    age_group = user_info['age_group']
+    
+    # 获取基础套餐
+    base_packages = recommended_packages.get(age_group, [])
+    
+    # 根据健康状况调整套餐
+    customized_packages = []
+    for package in base_packages:
+        # 创建套餐副本
+        customized_package = package.copy()
+        customized_package['items'] = package['items'].copy()
+        
+        # 根据基础疾病添加额外项目
+        if '糖尿病' in diseases:
+            if '血糖' not in customized_package['items']:
+                customized_package['items'].append('血糖')
+            if '糖化血红蛋白' not in customized_package['items']:
+                customized_package['items'].append('糖化血红蛋白')
+        
+        if '高血压' in diseases:
+            if '血压' not in customized_package['items']:
+                customized_package['items'].append('血压')
+            if '心电图' not in customized_package['items']:
+                customized_package['items'].append('心电图')
+        
+        # 根据不良嗜好添加额外项目
+        if '熬夜' in habits:
+            if '肝功能' not in customized_package['items']:
+                customized_package['items'].append('肝功能')
+            if '肾功能' not in customized_package['items']:
+                customized_package['items'].append('肾功能')
+        
+        if '吸烟' in habits:
+            if '胸部CT' not in customized_package['items']:
+                customized_package['items'].append('胸部CT')
+        
+        if '喝酒' in habits:
+            if '肝功能' not in customized_package['items']:
+                customized_package['items'].append('肝功能')
+            if '血脂' not in customized_package['items']:
+                customized_package['items'].append('血脂')
+        
+        # 更新套餐名称和描述
+        if diseases or habits:
+            customized_package['name'] = f"{package['name']}（定制版）"
+            customized_package['description'] = f"{package['description']} - 根据您的健康状况定制"
+        
+        customized_packages.append(customized_package)
+    
+    return render_template('customized_package.html', 
+                         user_info=user_info,
+                         age_group=age_group,
+                         diseases=diseases,
+                         habits=habits,
+                         customized_packages=customized_packages)
+
+@app.route('/upload_report', methods=['POST'])
+def upload_report():
+    if 'user_info' not in session:
+        return redirect(url_for('input_user_info'))
+    
+    # 获取上传的文件
+    file = request.files.get('report_file')
+    report_date = request.form.get('report_date', '')
+    hospital = request.form.get('hospital', '')
+    report_notes = request.form.get('report_notes', '')
+    
+    # 验证文件
+    if not file:
+        # 如果没有文件，重定向回上传页面并显示错误信息
+        return redirect(url_for('analyze_report'))
+    
+    # 验证文件大小（10MB）
+    max_size = 10 * 1024 * 1024
+    if file.content_length > max_size:
+        # 文件太大，重定向回上传页面
+        return redirect(url_for('analyze_report'))
+    
+    # 验证文件类型
+    allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png'}
+    import os
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        # 文件类型不允许，重定向回上传页面
+        return redirect(url_for('analyze_report'))
+    
+    # 存储报告信息到会话
+    session['report_info'] = {
+        'filename': file.filename if file else '',
+        'report_date': report_date,
+        'hospital': hospital,
+        'report_notes': report_notes
+    }
+    
+    # 获取用户基本信息
+    user_info = session['user_info']
+    
+    # 这里可以添加文件处理逻辑，如保存文件、分析报告等
+    # 目前我们只是模拟分析结果
+    
+    # 模拟报告分析结果
+    analysis_result = {
+        'summary': '您的体检报告显示整体健康状况良好，但有一些需要注意的指标。',
+        'abnormal_items': [
+            {'name': '血糖', 'value': '6.2 mmol/L', 'reference': '3.9-6.1 mmol/L', 'advice': '建议控制饮食，增加运动，定期复查。'},
+            {'name': '肝功能', 'value': 'ALT 45 U/L', 'reference': '0-40 U/L', 'advice': '建议减少熬夜，避免饮酒，保持良好的作息习惯。'}
+        ],
+        'recommendations': [
+            '保持健康的饮食习惯，减少高糖、高脂肪食物的摄入。',
+            '每周至少进行150分钟中等强度的有氧运动。',
+            '保证充足的睡眠时间，避免熬夜。',
+            '定期进行体检，监测健康状况。'
+        ]
+    }
+    
+    return render_template('report_analysis.html', 
+                         user_info=user_info,
+                         report_info=session['report_info'],
+                         analysis_result=analysis_result)
 
 @app.route('/search', methods=['POST'])
 def search():

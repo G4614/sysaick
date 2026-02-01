@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定制体检套餐 - 逸仙智检</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        neutral: '#6B7280',
+                        'primary-light': '#EFF6FF',
+                        'primary-dark': '#2563EB'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+            }
+            .btn-secondary {
+                @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary-light transition-colors duration-200;
+            }
+            .package-card {
+                @apply bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 hover:shadow-lg hover:border-primary;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">逸仙智检</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 定制套餐 -->
+    <div class="py-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-2xl font-bold text-center mb-10 text-gray-800">定制体检套餐</h2>
+            
+            <!-- 用户信息卡片 -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-8">
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">性别：</span>
+                        <span class="font-medium">{{ user_info.gender }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">年龄：</span>
+                        <span class="font-medium">{{ user_info.age }}岁 ({{ age_group }})</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">身高：</span>
+                        <span class="font-medium">{{ user_info.height }}cm</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">体重：</span>
+                        <span class="font-medium">{{ user_info.weight }}kg</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">BMI：</span>
+                        <span class="font-medium">{{ user_info.bmi }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 健康评估信息 -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-8">
+                <h3 class="text-lg font-medium mb-4 text-gray-800">
+                    <i class="fa fa-user-md mr-2 text-primary"></i>
+                    健康评估信息
+                </h3>
+                <div class="flex flex-wrap gap-4">
+                    {% if diseases %}
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">基础疾病：</span>
+                        <div class="flex flex-wrap gap-2">
+                            {% for disease in diseases %}
+                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">{{ disease }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if habits %}
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">不良嗜好：</span>
+                        <div class="flex flex-wrap gap-2">
+                            {% for habit in habits %}
+                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{{ habit }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 定制套餐 -->
+            <div class="space-y-6">
+                {% for package in customized_packages %}
+                <div class="package-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-medium text-gray-800">{{ package.name }}</h4>
+                        <span class="bg-primary-light text-primary px-3 py-1 rounded-full text-sm">{{ package['items']|length }}项</span>
+                    </div>
+                    <p class="text-gray-600 mb-4">{{ package.description }}</p>
+                    <div class="mb-4">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">包含项目：</h5>
+                        <div class="flex flex-wrap gap-2">
+                            {% for item in package['items'] %}
+                            <!-- 标记新增项目 -->
+                            {% if ('糖尿病' in diseases and (item == '糖化血红蛋白' or item == '血糖')) or 
+                                 ('高血压' in diseases and (item == '血压' or item == '心电图')) or 
+                                 ('熬夜' in habits and (item == '肝功能' or item == '肾功能')) or 
+                                 ('吸烟' in habits and item == '胸部CT') or 
+                                 ('喝酒' in habits and (item == '肝功能' or item == '血脂')) %}
+                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs border border-green-300">
+                                {{ item }} <i class="fa fa-plus-circle text-xs"></i>
+                            </span>
+                            {% else %}
+                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">{{ item }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button class="btn-primary">
+                            <i class="fa fa-check mr-2"></i>确认选择此套餐
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 返回按钮 -->
+            <div class="mt-8 text-center">
+                <a href="/package_selection" class="btn-secondary inline-block">
+                    <i class="fa fa-arrow-left mr-2"></i>返回修改
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-white py-6 px-4 border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-sm text-gray-500">
+                &copy; 2026 逸仙智检. 保留所有权利.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
