@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+import os
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for
 import json
 
 app = Flask(__name__, static_folder='static')
@@ -539,6 +540,21 @@ def get_hospital_prices():
         }
     else:
         return {'success': False, 'message': '未找到该检查项目的价格信息'}
+@app.route('/api/upload', methods=['POST'])
+def api_upload():
+    print(request.files)
+    if 'report_file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    
+    file = request.files['report_file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Save the uploaded file
+    # filename = secure_filename(file.filename)
+    # file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+    
+    return jsonify({'message': 'File uploaded successfully', 'filename': file.filename, 'success': True}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
