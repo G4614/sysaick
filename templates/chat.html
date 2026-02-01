@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逸仙智检</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        /* 头部 */
+        .chat-header {
+            background: #ffffff;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: #005826;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .menu-btn:hover {
+            background: #f0f9f4;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            color: #005826;
+            font-weight: 600;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .sidebar-close {
+            background: transparent;
+            border: none;
+            color: #8c8c8c;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-close:hover {
+            background: #f0f0f0;
+            color: #262626;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            background: #005826;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background: #00722f;
+        }
+
+        .history-section {
+            margin-bottom: 24px;
+        }
+
+        .history-section-title {
+            font-size: 12px;
+            color: #8c8c8c;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding: 0 8px;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-item:hover {
+            background: #f0f9f4;
+        }
+
+        .history-item.active {
+            background: #e8f4ee;
+            border-left: 3px solid #005826;
+        }
+
+        .history-item-icon {
+            color: #005826;
+            font-size: 16px;
+        }
+
+        .history-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item-title {
+            font-size: 14px;
+            color: #262626;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item-time {
+            font-size: 12px;
+            color: #8c8c8c;
+            margin-top: 2px;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8c8c8c;
+        }
+
+        .empty-history i {
+            font-size: 48px;
+            color: #d9d9d9;
+            margin-bottom: 12px;
+        }
+
+        /* 聊天区域 */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .initial-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+
+        .initial-view.hidden {
+            display: none;
+        }
+
+        .hero-section {
+            margin-bottom: 40px;
+        }
+
+        .doctor-avatar {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #f0f9f4;
+        }
+
+        .doctor-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #005826;
+            margin-bottom: 10px;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: #595959;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .quick-action-btn {
+            background: white;
+            color: #005826;
+            border: 1px solid #005826;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 88, 38, 0.1);
+        }
+
+        .quick-action-btn:hover {
+            background: #005826;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 88, 38, 0.2);
+        }
+
+        .quick-action-btn.active {
+            background: #00722f;
+            color: white;
+        }
+
+        .quick-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .quick-option-chip {
+            background: #f0f9f4;
+            color: #005826;
+            border: 1px solid #005826;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-option-chip:hover {
+            background: #d4f0e0;
+            transform: scale(1.05);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #005826;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .disease-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .disease-card {
+            background: #f0f9f4;
+            border: 2px solid #d4f0e0;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .disease-card:hover {
+            background: #d4f0e0;
+            border-color: #005826;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 88, 38, 0.2);
+        }
+
+        .disease-card-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .disease-card-title {
+            font-size: 14px;
+            color: #005826;
+            font-weight: 500;
+        }
+
+        /* 症状表单模态窗口 */
+        .symptom-form-modal {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #005826;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #d4f0e0;
+        }
+
+        .form-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .form-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f0f9f4;
+            border: 2px solid #d4f0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-option:hover {
+            background: #d4f0e0;
+            border-color: #005826;
+        }
+
+        .form-option input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .form-option label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #262626;
+            flex: 1;
+        }
+
+        .form-submit-btn {
+            width: 100%;
+            background: #005826;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        .form-submit-btn:hover {
+            background: #00722f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 88, 38, 0.3);
+        }
+
+        .modal-custom-input {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .modal-input-label {
+            font-size: 14px;
+            color: #595959;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .modal-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #d4f0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .modal-input:focus {
+            border-color: #005826;
+        }
+
+        .modal-submit-btn {
+            background: #005826;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .modal-submit-btn:hover {
+            background: #00722f;
+        }
+
+        .messages-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #005826;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: #f0f9f4;
+            color: #005826;
+        }
+
+        .message-content {
+            max-width: 60%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .message.user .message-content {
+            background: #d4f0e0;
+            color: #262626;
+            border-radius: 12px 12px 4px 12px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            color: #262626;
+            border: 1px solid #005826;
+            border-radius: 12px 12px 12px 4px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #8c8c8c;
+            margin-top: 6px;
+        }
+
+        .message-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #005826;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            60%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+
+            30% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* 输入区域 */
+        .chat-input-area {
+            background: white;
+            border-top: 1px solid #f0f0f0;
+            padding: 20px;
+        }
+
+        .input-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        #messageInput {
+            flex: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            font-size: 15px;
+            line-height: 1.5;
+            outline: none;
+            max-height: 120px;
+            font-family: inherit;
+        }
+
+        .input-btn {
+            background: transparent;
+            border: none;
+            color: #005826;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .input-btn:hover {
+            background: rgba(0, 88, 38, 0.1);
+        }
+
+        .input-btn.recording {
+            color: #ff4d4f;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .send-btn {
+            background: #005826;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: #00722f;
+        }
+
+        .send-btn:disabled {
+            background: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* 价格对比卡片样式 */
+        .price-card-container {
+            margin: 15px 0;
+            background: #f8fdf9;
+            border: 1px solid #d4f0e0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 88, 38, 0.08);
+        }
+
+        .price-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #005826;
+        }
+
+        .price-card-header i {
+            font-size: 20px;
+        }
+
+        .hospital-item {
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .hospital-item:hover {
+            border-color: #005826;
+            box-shadow: 0 4px 12px rgba(0, 88, 38, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .hospital-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .hospital-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .hospital-name-section {
+            flex: 1;
+        }
+
+        .hospital-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .hospital-type-badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+
+        .hospital-type-badge.public {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .hospital-type-badge.private {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .hospital-rating {
+            color: #ff9800;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .hospital-price-section {
+            text-align: right;
+        }
+
+        .hospital-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #005826;
+            line-height: 1;
+        }
+
+        .hospital-price-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .hospital-details {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hospital-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hospital-detail-item i {
+            color: #005826;
+            font-size: 14px;
+        }
+
+        .hospital-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hospital-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hospital-btn-primary {
+            background: #005826;
+            color: white;
+        }
+
+        .hospital-btn-primary:hover {
+            background: #00722f;
+        }
+
+        .hospital-btn-primary:disabled {
+            background: #d9d9d9;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .hospital-btn-secondary {
+            background: white;
+            color: #005826;
+            border: 1px solid #005826;
+        }
+
+        .hospital-btn-secondary:hover {
+            background: #f0f9f4;
+        }
+
+        .price-card-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #e0e0e0;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 侧边栏遮罩 -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">对话历史</div>
+            <button class="sidebar-close" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <button class="new-chat-btn" onclick="startNewChat()">
+                <i class="fas fa-plus"></i>
+                <span>新对话</span>
+            </button>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="chat-container">
+        <!-- 头部 -->
+        <div class="chat-header">
+            <div class="header-left">
+                <button class="menu-btn" onclick="toggleSidebar()" title="对话历史">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-title">
+                    <h1><i class="fas fa-comment-medical"></i> 逸仙智检</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天消息区 -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- 初始欢迎界面 -->
+            <div class="initial-view" id="initialView">
+                <div class="hero-section">
+                    <div class="doctor-avatar">
+                        <img src="/static/images/owl-mascot.png" alt="逸仙"
+                            onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:200px;height:200px;border-radius:50%;background:#f0f9f4;display:flex;align-items:center;justify-content:center\'><i class=\'fas fa-user-md\' style=\'font-size:90px;color:#005826\'></i></div>'">
+                    </div>
+                    <div class="hero-title">我是小鹰</div>
+                    <div class="hero-subtitle">你的AI健康专家</div>
+                </div>
+
+                <!-- 快捷按钮 -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn" id="detectionBtn" onclick="handleDetectionRecommendation()">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>检测推荐</span>
+                    </button>
+                    <button class="quick-action-btn" id="reportBtn" onclick="handleReportInterpretation()">
+                        <i class="fas fa-file-medical-alt"></i>
+                        <span>报告解读</span>
+                    </button>
+                    <button class="quick-action-btn" id="diseaseBtn" onclick="handleDiseaseExplore()">
+                        <i class="fas fa-book-medical"></i>
+                        <span>了解疾病</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 消息容器 -->
+            <div class="messages-container" id="messagesContainer"></div>
+        </div>
+
+        <!-- 疾病选择模态窗口 -->
+        <div class="modal-overlay" id="diseaseModal" onclick="closeDiseaseModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-title">请选择您关注的身体区域</div>
+                <div class="disease-grid">
+                    <div class="disease-card" onclick="selectDiseaseCategory('头面与感官')">
+                        <div class="disease-card-icon">🧠</div>
+                        <div class="disease-card-title">头面与感官</div>
+                    </div>
+                    <div class="disease-card" onclick="selectDiseaseCategory('呼吸与心跳')">
+                        <div class="disease-card-icon">🫁</div>
+                        <div class="disease-card-title">呼吸与心跳</div>
+                    </div>
+                    <div class="disease-card" onclick="selectDiseaseCategory('消化与排泄')">
+                        <div class="disease-card-icon">🥣</div>
+                        <div class="disease-card-title">消化与排泄</div>
+                    </div>
+                    <div class="disease-card" onclick="selectDiseaseCategory('筋骨与运动')">
+                        <div class="disease-card-icon">🦴</div>
+                        <div class="disease-card-title">筋骨与运动</div>
+                    </div>
+                    <div class="disease-card" onclick="selectDiseaseCategory('皮肤与外形')">
+                        <div class="disease-card-icon">🧬</div>
+                        <div class="disease-card-title">皮肤与外形</div>
+                    </div>
+                    <div class="disease-card" onclick="selectDiseaseCategory('整体状态与睡眠')">
+                        <div class="disease-card-icon">👤</div>
+                        <div class="disease-card-title">整体状态与睡眠</div>
+                    </div>
+                </div>
+                
+                <!-- 自定义输入区 -->
+                <div class="modal-custom-input">
+                    <div class="modal-input-label">或者直接描述您的问题：</div>
+                    <div class="modal-input-wrapper">
+                        <input type="text" class="modal-input" id="customSymptomInput" placeholder="例如：最近总是头晕、胃痛一个星期了..." onkeypress="handleCustomInputEnter(event)">
+                        <button class="modal-submit-btn" onclick="submitCustomSymptom()">提交</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 症状表单模态窗口 -->
+        <div class="modal-overlay" id="symptomFormModal" onclick="closeSymptomFormModal(event)">
+            <div class="modal-content symptom-form-modal" onclick="event.stopPropagation()">
+                <div class="modal-title" id="symptomFormTitle">请选择您的症状</div>
+                <div id="symptomFormContent">
+                    <!-- 动态生成的表单内容 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="chat-input-area">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea id="messageInput" placeholder="描述您的健康问题..." rows="1" onkeydown="handleKeyPress(event)"
+                        oninput="autoResize(this)"></textarea>
+
+                    <button class="input-btn" onclick="document.getElementById('imageInput').click()" title="上传图片">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+
+                    <button class="input-btn" id="voiceBtn" onclick="toggleVoiceRecording()" title="语音输入">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+
+                    <button class="send-btn" onclick="sendMessage()">
+                        发送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRecording = false;
+        let chatHistory = [];
+        let currentChatId = null;
+
+        // 症状配置数据（配置驱动）
+        const SYMPTOM_CONFIG = {
+            '头面与感官': {
+                symptoms: ['头痛', '头晕/眩晕', '视力模糊', '耳鸣/听力下降', '鼻塞/流涕', '牙痛/口腔溃疡', '面部麻木'],
+                duration: ['突发(几分钟-几小时)', '急性(几天)', '慢性(数周以上)', '间歇性发作'],
+                triggers: ['熬夜/劳累', '情绪激动', '受寒/吹风', '长时间看屏幕', '头部外伤后'],
+                history: ['高血压', '糖尿病', '心脏病', '手术史', '药物过敏史', '吸烟/饮酒']
+            },
+            '呼吸与心跳': {
+                symptoms: ['呼吸困难', '气短', '胸闷/胸痛', '剧烈咳嗽', '咳痰（白痰/黄痰/血痰）', '心悸/心慌'],
+                duration: ['突发(几分钟-几小时)', '急性(几天)', '慢性(数周以上)', '间歇性发作'],
+                triggers: ['运动后', '夜间/平卧时', '吸入冷空气/粉尘', '情绪变化时'],
+                history: ['高血压', '糖尿病', '心脏病', '手术史', '药物过敏史', '吸烟/饮酒']
+            },
+            '消化与排泄': {
+                symptoms: ['上腹痛（胃痛）', '下腹痛', '腹胀/嗳气', '反酸/烧心', '恶心/呕吐', '腹泻', '便秘', '便血/黑便', '尿频/尿急/尿痛'],
+                duration: ['突发(几分钟-几小时)', '急性(几天)', '慢性(数周以上)', '间歇性发作'],
+                triggers: ['进食生冷辛辣', '饮酒后', '空腹时', '餐后立即出现', '夜间'],
+                history: ['高血压', '糖尿病', '心脏病', '手术史', '药物过敏史', '吸烟/饮酒']
+            },
+            '筋骨与运动': {
+                symptoms: ['关节疼痛', '关节肿胀', '肌肉酸痛', '腰背痛', '活动受限', '晨起僵硬', '肢体麻木/无力'],
+                duration: ['外伤后立即', '长期慢性疼痛', '阴雨天加重'],
+                position: ['颈椎/肩部', '腰椎', '膝关节', '手腕/脚踝'],
+                history: ['高血压', '糖尿病', '心脏病', '手术史', '药物过敏史', '吸烟/饮酒']
+            },
+            '皮肤与外形': {
+                symptoms: ['皮疹/红斑', '瘙痒', '起水泡', '皮肤肿块/结节', '皮肤颜色改变', '脱发', '异常出血/淤斑'],
+                duration: ['突发(几分钟-几小时)', '急性(几天)', '慢性(数周以上)', '间歇性发作'],
+                triggers: ['接触过敏原', '换季时', '暴晒后', '进食海鲜后'],
+                history: ['高血压', '糖尿病', '心脏病', '手术史', '药物过敏史', '吸烟/饮酒']
+            },
+            '整体状态与睡眠': {
+                symptoms: ['发热（低热/高热）', '畏寒', '不明原因体重下降', '身体浮肿', '极度乏力', '失眠/多梦', '情绪低落/焦虑'],
+                duration: ['突发(几分钟-几小时)', '急性(几天)', '慢性(数周以上)', '间歇性发作'],
+                triggers: ['熬夜/劳累', '情绪激动', '环境变化', '季节变化'],
+                history: ['高血压', '糖尿病', '心脏病', '手术史', '药物过敏史', '吸烟/饮酒']
+            }
+        };
+
+        // 通用表单渲染函数
+        function renderSymptomForm(categoryName) {
+            const config = SYMPTOM_CONFIG[categoryName];
+            if (!config) return;
+
+            const formContent = document.getElementById('symptomFormContent');
+            document.getElementById('symptomFormTitle').textContent = `${categoryName} - 症状评估表`;
+
+            let html = '<form id="symptomForm">';
+
+            // 症状选择（多选）
+            html += '<div class="form-section">';
+            html += '<div class="form-section-title">症状表现（可多选）</div>';
+            html += '<div class="form-options">';
+            config.symptoms.forEach((symptom, index) => {
+                html += `
+                    <div class="form-option">
+                        <input type="checkbox" id="symptom_${index}" name="symptoms" value="${symptom}">
+                        <label for="symptom_${index}">${symptom}</label>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+
+            // 持续时长（单选）
+            html += '<div class="form-section">';
+            html += '<div class="form-section-title">持续时长（单选）</div>';
+            html += '<div class="form-options">';
+            config.duration.forEach((dur, index) => {
+                html += `
+                    <div class="form-option">
+                        <input type="radio" id="duration_${index}" name="duration" value="${dur}">
+                        <label for="duration_${index}">${dur}</label>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+
+            // 诱因/位置（多选）
+            if (config.triggers) {
+                html += '<div class="form-section">';
+                html += '<div class="form-section-title">诱发因素（可多选）</div>';
+                html += '<div class="form-options">';
+                config.triggers.forEach((trigger, index) => {
+                    html += `
+                        <div class="form-option">
+                            <input type="checkbox" id="trigger_${index}" name="triggers" value="${trigger}">
+                            <label for="trigger_${index}">${trigger}</label>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+
+            if (config.position) {
+                html += '<div class="form-section">';
+                html += '<div class="form-section-title">疼痛位置（可多选）</div>';
+                html += '<div class="form-options">';
+                config.position.forEach((pos, index) => {
+                    html += `
+                        <div class="form-option">
+                            <input type="checkbox" id="position_${index}" name="position" value="${pos}">
+                            <label for="position_${index}">${pos}</label>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+
+            // 既往史（多选）
+            html += '<div class="form-section">';
+            html += '<div class="form-section-title">既往病史（可多选）</div>';
+            html += '<div class="form-options">';
+            config.history.forEach((hist, index) => {
+                html += `
+                    <div class="form-option">
+                        <input type="checkbox" id="history_${index}" name="history" value="${hist}">
+                        <label for="history_${index}">${hist}</label>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+
+            html += `<button type="button" class="form-submit-btn" onclick="submitSymptomForm('${categoryName}')">提交评估</button>`;
+            html += '</form>';
+
+            formContent.innerHTML = html;
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', function () {
+            loadHistory();
+            
+            // 添加粘贴事件监听
+            document.addEventListener('paste', handlePaste);
+        });
+
+        // 处理粘贴事件
+        function handlePaste(event) {
+            const items = event.clipboardData.items;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    event.preventDefault();
+                    const file = items[i].getAsFile();
+                    
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const initialView = document.getElementById('initialView');
+                        if (initialView) {
+                            initialView.classList.add('hidden');
+                        }
+
+                        const imageBase64 = e.target.result;
+                        addMessage('user', '我粘贴了一张图片', imageBase64);
+
+                        setTimeout(async () => {
+                            showTypingIndicator();
+                            const response = await generateResponse('请帮我分析这张体检报告，重点关注异常指标和健康风险。', imageBase64);
+                            hideTypingIndicator();
+                            addMessage('assistant', response);
+                        }, 300);
+                    };
+                    reader.readAsDataURL(file);
+                    break;
+                }
+            }
+        }
+
+        // 加载历史记录
+        function loadHistory() {
+            const saved = localStorage.getItem('chatHistory');
+            if (saved) {
+                chatHistory = JSON.parse(saved);
+                renderHistory();
+            }
+        }
+
+        // 渲染历史记录列表
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+
+            if (chatHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-history">
+                        <i class="fas fa-comments"></i>
+                        <p>暂无对话记录</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 按日期分组
+            const today = [];
+            const yesterday = [];
+            const older = [];
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
+
+            chatHistory.forEach(chat => {
+                const chatDate = new Date(chat.timestamp);
+                if (chatDate >= todayStart) {
+                    today.push(chat);
+                } else if (chatDate >= yesterdayStart) {
+                    yesterday.push(chat);
+                } else {
+                    older.push(chat);
+                }
+            });
+
+            let html = '';
+
+            if (today.length > 0) {
+                html += '<div class="history-section"><div class="history-section-title">今天</div>';
+                today.forEach(chat => html += renderHistoryItem(chat));
+                html += '</div>';
+            }
+
+            if (yesterday.length > 0) {
+                html += '<div class="history-section"><div class="history-section-title">昨天</div>';
+                yesterday.forEach(chat => html += renderHistoryItem(chat));
+                html += '</div>';
+            }
+
+            if (older.length > 0) {
+                html += '<div class="history-section"><div class="history-section-title">更早</div>';
+                older.forEach(chat => html += renderHistoryItem(chat));
+                html += '</div>';
+            }
+
+            historyList.innerHTML = html;
+        }
+
+        // 渲染单个历史记录项
+        function renderHistoryItem(chat) {
+            const isActive = chat.id === currentChatId ? 'active' : '';
+            const time = new Date(chat.timestamp).toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            return `
+                <div class="history-item ${isActive}" onclick="loadChat('${chat.id}')">
+                    <div class="history-item-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <div class="history-item-content">
+                        <div class="history-item-title">${chat.title}</div>
+                        <div class="history-item-time">${time}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 保存当前对话
+        function saveCurrentChat() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messages = messagesContainer.querySelectorAll('.message');
+
+            if (messages.length === 0) return;
+
+            if (!currentChatId) {
+                currentChatId = 'chat_' + Date.now();
+                const firstMessage = messagesContainer.querySelector('.message.user .message-content div:first-child');
+                const title = firstMessage ? firstMessage.textContent.substring(0, 30) : '新对话';
+
+                chatHistory.unshift({
+                    id: currentChatId,
+                    title: title,
+                    timestamp: Date.now(),
+                    messages: []
+                });
+            }
+
+            // 更新当前对话的消息
+            const currentChat = chatHistory.find(chat => chat.id === currentChatId);
+            if (currentChat) {
+                const messageArray = Array.from(messages).map(msg => {
+                    const type = msg.classList.contains('user') ? 'user' : 'assistant';
+                    const contentDiv = msg.querySelector('.message-content div:first-child');
+                    const content = contentDiv ? contentDiv.textContent : '';
+                    return { type, content };
+                });
+                currentChat.messages = messageArray;
+            }
+
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            renderHistory();
+        }
+
+        // 加载指定对话
+        function loadChat(chatId) {
+            const chat = chatHistory.find(c => c.id === chatId);
+            if (!chat) return;
+
+            currentChatId = chatId;
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            chat.messages.forEach(msg => {
+                addMessageToDOM(msg.type, msg.content);
+            });
+
+            toggleSidebar();
+            renderHistory();
+        }
+
+        // 开始新对话
+        function startNewChat() {
+            currentChatId = null;
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.remove('hidden');
+            }
+
+            toggleSidebar();
+            renderHistory();
+        }
+
+        // 切换侧边栏
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        // 处理检测推荐按钮
+        function handleDetectionRecommendation() {
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            // 激活按钮状态
+            document.querySelectorAll('.quick-action-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('detectionBtn').classList.add('active');
+
+            // AI自动回复
+            addMessage('assistant', '收到！请告诉我您的具体需求：');
+
+            // 添加快速选项
+            setTimeout(() => {
+                const messagesContainer = document.getElementById('messagesContainer');
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'quick-options';
+                optionsDiv.innerHTML = `
+                    <button class="quick-option-chip" onclick="handleDetectionOption('身体不适')">
+                        🩺 身体不适
+                    </button>
+                    <button class="quick-option-chip" onclick="handleDetectionOption('定期体检')">
+                        📋 定期体检
+                    </button>
+                `;
+                messagesContainer.appendChild(optionsDiv);
+
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 300);
+        }
+
+        // 处理检测选项点击
+        async function handleDetectionOption(option) {
+            // 移除快速选项
+            document.querySelectorAll('.quick-options').forEach(el => el.remove());
+
+            if (option === '身体不适') {
+                // 显示疾病分类模态窗口（与"了解疾病"共用）
+                document.getElementById('diseaseModal').classList.add('show');
+            } else {
+                // 定期体检选项
+                addMessage('user', option);
+
+                setTimeout(async () => {
+                    showTypingIndicator();
+                    const response = await generateResponse('我想做定期体检，请问是全身体检还是针对特定目标（如入职、备孕）的检查？');
+                    hideTypingIndicator();
+                    addMessage('assistant', response);
+                }, 300);
+            }
+        }
+
+        // 处理报告解读按钮
+        function handleReportInterpretation() {
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            // 激活按钮状态
+            document.querySelectorAll('.quick-action-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('reportBtn').classList.add('active');
+
+            // AI发送引导语
+            addMessage('assistant', '请上传您的检验报告图片或文件（支持 JPG, PNG, PDF）。如果是拍照，请尽量保证文字清晰。');
+
+            // 自动触发文件上传
+            setTimeout(() => {
+                document.getElementById('imageInput').click();
+            }, 500);
+        }
+
+        // 处理了解疾病按钮
+        function handleDiseaseExplore() {
+            // 激活按钮状态
+            document.querySelectorAll('.quick-action-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('diseaseBtn').classList.add('active');
+
+            // 显示模态窗口
+            document.getElementById('diseaseModal').classList.add('show');
+        }
+
+        // 关闭疾病模态窗口
+        function closeDiseaseModal(event) {
+            if (event.target.id === 'diseaseModal') {
+                document.getElementById('diseaseModal').classList.remove('show');
+                document.getElementById('diseaseBtn').classList.remove('active');
+            }
+        }
+
+        // 选择疾病分类
+        function selectDiseaseCategory(category) {
+            // 关闭分类选择模态窗口
+            document.getElementById('diseaseModal').classList.remove('show');
+            // 清空输入框
+            document.getElementById('customSymptomInput').value = '';
+
+            // 渲染并显示症状表单
+            renderSymptomForm(category);
+            document.getElementById('symptomFormModal').classList.add('show');
+        }
+
+        // 关闭症状表单模态窗口
+        function closeSymptomFormModal(event) {
+            if (event.target.id === 'symptomFormModal') {
+                document.getElementById('symptomFormModal').classList.remove('show');
+            }
+        }
+
+        // 提交症状表单
+        async function submitSymptomForm(categoryName) {
+            const form = document.getElementById('symptomForm');
+            
+            // 收集选中的症状
+            const symptoms = Array.from(form.querySelectorAll('input[name="symptoms"]:checked'))
+                .map(input => input.value);
+            
+            // 收集持续时长
+            const duration = form.querySelector('input[name="duration"]:checked')?.value || '未选择';
+            
+            // 收集诱因
+            const triggers = Array.from(form.querySelectorAll('input[name="triggers"]:checked'))
+                .map(input => input.value);
+            
+            // 收集位置（如果有）
+            const position = Array.from(form.querySelectorAll('input[name="position"]:checked'))
+                .map(input => input.value);
+            
+            // 收集既往史
+            const history = Array.from(form.querySelectorAll('input[name="history"]:checked'))
+                .map(input => input.value);
+
+            // 验证是否至少选择了一个症状
+            if (symptoms.length === 0) {
+                alert('请至少选择一个症状');
+                return;
+            }
+
+            // 构建描述文字
+            let description = `用户主诉${categoryName}不适，具体症状为：${symptoms.join('、')}。`;
+            description += `持续时长：${duration}。`;
+            
+            if (triggers.length > 0) {
+                description += `诱发因素：${triggers.join('、')}。`;
+            }
+            
+            if (position.length > 0) {
+                description += `疼痛位置：${position.join('、')}。`;
+            }
+            
+            if (history.length > 0) {
+                description += `既往病史：${history.join('、')}。`;
+            }
+
+            // 关闭模态窗口
+            document.getElementById('symptomFormModal').classList.remove('show');
+
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            // 发送用户描述
+            addMessage('user', description);
+
+            // AI回复
+            setTimeout(async () => {
+                showTypingIndicator();
+                const response = await generateResponse(description + ' 请根据这些症状进行专业分析和建议。');
+                hideTypingIndicator();
+                addMessage('assistant', response);
+            }, 300);
+        }
+
+        // 提交自定义症状
+        async function submitCustomSymptom() {
+            const input = document.getElementById('customSymptomInput');
+            const symptom = input.value.trim();
+            
+            if (!symptom) {
+                alert('请输入您的问题描述');
+                return;
+            }
+
+            // 关闭模态窗口
+            document.getElementById('diseaseModal').classList.remove('show');
+            input.value = '';
+
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            // 发送用户输入
+            addMessage('user', symptom);
+
+            // AI开始问诊
+            setTimeout(async () => {
+                showTypingIndicator();
+                const response = await generateResponse(symptom);
+                hideTypingIndicator();
+                addMessage('assistant', response);
+            }, 300);
+        }
+
+        // 处理回车键提交
+        function handleCustomInputEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitCustomSymptom();
+            }
+        }
+
+        // 快捷按钮发送消息
+        async function sendQuickMessage(text) {
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            addMessage('user', text);
+
+            // 调用AI回复
+            setTimeout(async () => {
+                showTypingIndicator();
+                const response = await generateResponse(text);
+                hideTypingIndicator();
+                addMessage('assistant', response);
+            }, 300);
+        }
+
+        // 添加消息
+        function addMessage(type, content, imageUrl = null) {
+            addMessageToDOM(type, content, imageUrl);
+            saveCurrentChat();
+        }
+
+        // 检查项目关键词映射
+        const CHECK_ITEM_KEYWORDS = {
+            "血常规": ["血常规", "血液检查", "血细胞"],
+            "胸部CT": ["胸部CT", "胸部 CT", "胸CT", "CT胸部", "肺部CT"],
+            "心电图": ["心电图", "ECG", "心电"],
+            "核磁共振": ["核磁", "核磁共振", "MRI", "磁共振"],
+            "腹部B超": ["腹部B超", "腹部超声", "B超", "彩超"],
+            "肝功能": ["肝功能", "肝功", "转氨酶"]
+        };
+
+        // 识别AI回复中的检查项目
+        function detectCheckItems(aiResponse) {
+            const detectedItems = [];
+            
+            for (const [itemName, keywords] of Object.entries(CHECK_ITEM_KEYWORDS)) {
+                for (const keyword of keywords) {
+                    if (aiResponse.includes(keyword)) {
+                        if (!detectedItems.includes(itemName)) {
+                            detectedItems.push(itemName);
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            return detectedItems;
+        }
+
+        // 渲染价格对比卡片
+        async function renderPriceCard(checkItem, parentElement) {
+            try {
+                const response = await fetch('/api/hospital_prices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ checkItem: checkItem })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.hospitals) {
+                    const cardContainer = document.createElement('div');
+                    cardContainer.className = 'price-card-container';
+                    
+                    let cardHTML = `
+                        <div class="price-card-header">
+                            <i class="fas fa-search-dollar"></i>
+                            <span>${data.checkItem} 周边价格参考</span>
+                        </div>
+                    `;
+                    
+                    data.hospitals.forEach(hospital => {
+                        const isAvailable = hospital.booking_status === '可预约';
+                        cardHTML += `
+                            <div class="hospital-item">
+                                <div class="hospital-header">
+                                    <div class="hospital-name-section">
+                                        <div class="hospital-name">
+                                            ${hospital.name}
+                                            <span class="hospital-rating">
+                                                <i class="fas fa-star"></i> ${hospital.rating}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="hospital-type-badge ${hospital.type}">${hospital.type === 'public' ? '公立' : '私立'}</span>
+                                        </div>
+                                    </div>
+                                    <div class="hospital-price-section">
+                                        <div class="hospital-price">¥${hospital.price}</div>
+                                        <div class="hospital-price-label">预估价格</div>
+                                    </div>
+                                </div>
+                                <div class="hospital-details">
+                                    <div class="hospital-detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>${hospital.distance}</span>
+                                    </div>
+                                    <div class="hospital-detail-item">
+                                        <i class="fas fa-building"></i>
+                                        <span>${hospital.department}</span>
+                                    </div>
+                                    <div class="hospital-detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>${hospital.wait_time}</span>
+                                    </div>
+                                </div>
+                                <div class="hospital-actions">
+                                    <button class="hospital-btn hospital-btn-primary" 
+                                            ${!isAvailable ? 'disabled' : ''}
+                                            onclick="bookHospital('${hospital.name}', '${data.checkItem}')">
+                                        ${isAvailable ? '<i class="fas fa-calendar-check"></i> 立即预约' : '<i class="fas fa-ban"></i> 预约已满'}
+                                    </button>
+                                    <button class="hospital-btn hospital-btn-secondary" 
+                                            onclick="viewHospitalDetails('${hospital.name}')">
+                                        <i class="fas fa-info-circle"></i> 详情
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    cardHTML += `
+                        <div class="price-card-footer">
+                            <i class="fas fa-info-circle"></i> 
+                            价格仅供参考，实际费用请以医院为准 | 
+                            <span style="color: #005826; font-weight: 500;">优先推荐中山大学孙逸仙纪念医院</span>
+                        </div>
+                    `;
+                    
+                    cardContainer.innerHTML = cardHTML;
+                    parentElement.appendChild(cardContainer);
+                }
+            } catch (error) {
+                console.error('获取价格数据失败:', error);
+            }
+        }
+
+        // 预约医院（模拟功能）
+        function bookHospital(hospitalName, checkItem) {
+            alert(`正在为您预约 ${hospitalName} 的 ${checkItem} 检查...\n\n预约功能开发中，敬请期待！`);
+        }
+
+        // 查看医院详情（模拟功能）
+        function viewHospitalDetails(hospitalName) {
+            alert(`查看 ${hospitalName} 详细信息...\n\n详情功能开发中，敬请期待！`);
+        }
+
+        // 将消息添加到DOM
+        function addMessageToDOM(type, content, imageUrl = null) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-user-md"></i>';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            const text = document.createElement('div');
+            text.textContent = content;
+            text.style.whiteSpace = 'pre-wrap';
+            contentDiv.appendChild(text);
+
+            if (imageUrl) {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.className = 'message-image';
+                img.onclick = () => window.open(imageUrl, '_blank');
+                contentDiv.appendChild(img);
+            }
+
+            // 如果是AI回复，检测检查项目并渲染价格卡片
+            if (type === 'assistant') {
+                const checkItems = detectCheckItems(content);
+                if (checkItems.length > 0) {
+                    // 为每个检测到的项目渲染价格卡片
+                    checkItems.forEach(item => {
+                        renderPriceCard(item, contentDiv);
+                    });
+                }
+            }
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            contentDiv.appendChild(time);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 显示打字指示器
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant';
+            typingDiv.id = 'typingIndicator';
+
+            typingDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(typingDiv);
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 隐藏打字指示器
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // 发送消息
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const initialView = document.getElementById('initialView');
+            if (initialView) {
+                initialView.classList.add('hidden');
+            }
+
+            addMessage('user', message);
+            input.value = '';
+            autoResize(input);
+
+            // 调用AI回复
+            setTimeout(async () => {
+                showTypingIndicator();
+                const response = await generateResponse(message);
+                hideTypingIndicator();
+                addMessage('assistant', response);
+            }, 300);
+        }
+
+// 调用AI生成回复（支持图片）
+        async function generateResponse(message, imageBase64 = null) {
+            try {
+                const requestBody = { message: message };
+                if (imageBase64) {
+                    requestBody.image = imageBase64;
+                }
+                
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data.response;
+                } else {
+                    return '抱歉，我现在无法回复。请稍后再试。错误：' + (data.error || '未知错误');
+                }
+            } catch (error) {
+                console.error('调用AI接口失败:', error);
+                return '抱歉，网络连接出现问题，请检查网络后重试。';
+            }
+        }
+
+        // 处理图片上传
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const initialView = document.getElementById('initialView');
+                if (initialView) {
+                    initialView.classList.add('hidden');
+                }
+
+                const imageBase64 = e.target.result;
+                addMessage('user', '我上传了一张图片', imageBase64);
+
+                setTimeout(async () => {
+                    showTypingIndicator();
+                    const response = await generateResponse('请帮我分析这张体检报告，重点关注异常指标和健康风险。', imageBase64);
+                    hideTypingIndicator();
+                    addMessage('assistant', response);
+                }, 300);
+            };
+            reader.readAsDataURL(file);
+
+            event.target.value = '';
+        }
+
+        // 语音录制
+        function toggleVoiceRecording() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            isRecording = !isRecording;
+
+            if (isRecording) {
+                voiceBtn.classList.add('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                // 这里可以添加实际的语音录制逻辑
+            } else {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                // 处理录音结束
+                const initialView = document.getElementById('initialView');
+                if (initialView) {
+                    initialView.classList.add('hidden');
+                }
+                const voiceText = '我想了解一下体检项目推荐';
+                addMessage('user', '[语音消息] ' + voiceText);
+                setTimeout(async () => {
+                    showTypingIndicator();
+                    const response = await generateResponse(voiceText);
+                    hideTypingIndicator();
+                    addMessage('assistant', response);
+                }, 300);
+            }
+        }
+
+        // 处理回车发送
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 自动调整输入框高度
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+    </script>
+</body>
+
+</html>

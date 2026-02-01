@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,6 +61,7 @@
         }
     </style>
 </head>
+
 <body class="bg-white font-sans">
     <!-- 导航栏 -->
     <nav class="bg-white shadow-sm">
@@ -67,15 +69,18 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center">
-                        <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                        <img src="/static/images/owl-mascot.png" alt="逸仙智检" class="h-8 w-8 mr-2"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.marginLeft='0'">
                         <span class="text-xl font-bold text-gray-800">逸仙智检</span>
                     </div>
                 </div>
                 <div class="flex items-center">
                     <div class="hidden md:block">
                         <div class="ml-10 flex items-baseline space-x-6">
-                            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary-light transition-colors">首页</a>
-                            <a href="/input" class="px-3 py-2 rounded-md text-sm font-medium text-primary bg-primary-light">开始评估</a>
+                            <a href="/"
+                                class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary-light transition-colors">首页</a>
+                            <a href="/input"
+                                class="px-3 py-2 rounded-md text-sm font-medium text-primary bg-primary-light">开始评估</a>
                         </div>
                     </div>
                 </div>
@@ -90,7 +95,7 @@
                 <h2 class="text-3xl font-bold mb-4 text-gray-800">体检套餐选择</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">根据您的年龄和健康状况，我们为您推荐以下体检套餐</p>
             </div>
-            
+
             <!-- 用户信息卡片 -->
             <div class="bg-white border border-gray-200 rounded-xl p-6 mb-12">
                 <div class="flex flex-wrap gap-6">
@@ -128,7 +133,7 @@
                             </div>
                             <h3 class="text-xl font-semibold text-gray-800">{{ age_group }}推荐套餐</h3>
                         </div>
-                        
+
                         <div class="space-y-8">
                             {% for package in packages %}
                             <div class="package-card">
@@ -165,7 +170,7 @@
                             </div>
                             <h3 class="text-xl font-semibold text-gray-800">健康状况评估</h3>
                         </div>
-                        
+
                         <form action="/submit_health_assessment" method="POST" class="space-y-8">
                             <!-- 基础疾病 -->
                             <div>
@@ -173,8 +178,11 @@
                                 <div class="checkbox-group">
                                     {% for disease in basic_diseases %}
                                     <div class="checkbox-item">
-                                        <input type="checkbox" id="disease-{{ loop.index }}" name="diseases" value="{{ disease }}" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
-                                        <label for="disease-{{ loop.index }}" class="ml-3 text-gray-700 cursor-pointer">{{ disease }}</label>
+                                        <input type="checkbox" id="disease-{{ loop.index }}" name="diseases"
+                                            value="{{ disease }}"
+                                            class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                                        <label for="disease-{{ loop.index }}"
+                                            class="ml-3 text-gray-700 cursor-pointer">{{ disease }}</label>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -186,8 +194,11 @@
                                 <div class="checkbox-group">
                                     {% for habit in bad_habits %}
                                     <div class="checkbox-item">
-                                        <input type="checkbox" id="habit-{{ loop.index }}" name="habits" value="{{ habit }}" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
-                                        <label for="habit-{{ loop.index }}" class="ml-3 text-gray-700 cursor-pointer">{{ habit }}</label>
+                                        <input type="checkbox" id="habit-{{ loop.index }}" name="habits"
+                                            value="{{ habit }}"
+                                            class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                                        <label for="habit-{{ loop.index }}" class="ml-3 text-gray-700 cursor-pointer">{{
+                                            habit }}</label>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -219,7 +230,8 @@
     <footer class="bg-gray-50 py-8 px-4 border-t border-gray-200">
         <div class="max-w-7xl mx-auto text-center">
             <div class="flex items-center justify-center mb-4">
-                <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                <img src="/static/images/owl-mascot.png" alt="逸仙智检" class="h-8 w-8 mr-2"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.marginLeft='0'">
                 <span class="text-xl font-bold text-gray-800">逸仙智检</span>
             </div>
             <p class="text-sm text-gray-500">
@@ -228,4 +240,5 @@
         </div>
     </footer>
 </body>
+
 </html>

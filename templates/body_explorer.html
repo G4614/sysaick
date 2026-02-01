@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D人体探索 - 逸仙智检</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .back-btn {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding-top: 80px;
+        }
+
+        .left-panel {
+            width: 350px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #00ff88;
+            text-align: center;
+        }
+
+        .layer-control {
+            margin-bottom: 30px;
+        }
+
+        .layer-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .layer-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #00ff88 0%, #00d4ff 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .layer-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .organs-list {
+            margin-top: 30px;
+        }
+
+        .organ-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .organ-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+            transform: translateX(5px);
+        }
+
+        .organ-item.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .organ-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .organ-desc {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #bodyCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .info-bubble {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 350px;
+            display: none;
+            z-index: 50;
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .info-bubble.show {
+            display: block;
+            animation: bubbleIn 0.3s ease;
+        }
+
+        @keyframes bubbleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .bubble-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .bubble-section {
+            margin-bottom: 15px;
+        }
+
+        .bubble-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .bubble-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #fff;
+        }
+
+        .reference-range {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin-top: 5px;
+        }
+
+        .disease-tag {
+            display: inline-block;
+            background: rgba(255, 100, 100, 0.2);
+            border: 1px solid #ff6464;
+            color: #ff6464;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 4px;
+        }
+
+        .indicator-sphere {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #00ff88, #00aa66);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+            cursor: pointer;
+            display: none;
+            transition: all 0.3s;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .indicator-sphere.show {
+            display: block;
+        }
+
+        .indicator-sphere:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 255, 136, 0.1);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <span>🦉</span>
+            <span>3D人体探索</span>
+        </div>
+        <button class="back-btn" onclick="window.location.href='/chat'">返回聊天</button>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div>正在加载3D模型...</div>
+    </div>
+
+    <div class="container" style="display: none;" id="mainContent">
+        <div class="left-panel">
+            <div class="panel-title">人体系统探索</div>
+            
+            <div class="layer-control">
+                <div class="layer-label">
+                    <span>透视层级</span>
+                    <span id="layerName">皮肤</span>
+                </div>
+                <input type="range" class="layer-slider" id="layerSlider" min="0" max="3" value="3" step="1">
+            </div>
+
+            <div class="organs-list" id="organsList">
+                <div class="organ-item" data-organ="heart">
+                    <div class="organ-name">❤️ 心脏</div>
+                    <div class="organ-desc">循环系统的核心，负责泵血</div>
+                </div>
+                <div class="organ-item" data-organ="liver">
+                    <div class="organ-name">🫀 肝脏</div>
+                    <div class="organ-desc">代谢与解毒的重要器官</div>
+                </div>
+                <div class="organ-item" data-organ="lung">
+                    <div class="organ-name">🫁 肺部</div>
+                    <div class="organ-desc">气体交换的场所</div>
+                </div>
+                <div class="organ-item" data-organ="kidney">
+                    <div class="organ-name">🫘 肾脏</div>
+                    <div class="organ-desc">过滤血液，调节水分</div>
+                </div>
+                <div class="organ-item" data-organ="stomach">
+                    <div class="organ-name">🫃 胃部</div>
+                    <div class="organ-desc">消化食物的主要器官</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="bodyCanvas"></canvas>
+            
+            <!-- 指标小球容器 -->
+            <div class="indicator-sphere" id="indicator1" style="top: 30%; left: 45%;" data-indicator="alt">
+                <span style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; white-space: nowrap;">ALT</span>
+            </div>
+            <div class="indicator-sphere" id="indicator2" style="top: 40%; left: 55%;" data-indicator="ast">
+                <span style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; white-space: nowrap;">AST</span>
+            </div>
+            <div class="indicator-sphere" id="indicator3" style="top: 50%; left: 40%;" data-indicator="albumin">
+                <span style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; white-space: nowrap;">白蛋白</span>
+            </div>
+
+            <!-- 信息气泡 -->
+            <div class="info-bubble" id="infoBubble">
+                <div class="bubble-title" id="bubbleTitle">谷丙转氨酶 (ALT)</div>
+                <div class="bubble-section">
+                    <div class="bubble-label">生理功能</div>
+                    <div class="bubble-content" id="bubbleFunction">
+                        ALT主要存在于肝细胞中，参与氨基酸代谢。当肝细胞受损时，ALT会释放入血液。
+                    </div>
+                </div>
+                <div class="bubble-section">
+                    <div class="bubble-label">参考区间</div>
+                    <div class="bubble-content">
+                        <div class="reference-range" id="bubbleRange">7-40 U/L</div>
+                    </div>
+                </div>
+                <div class="bubble-section">
+                    <div class="bubble-label">相关疾病</div>
+                    <div class="bubble-content" id="bubbleDiseases">
+                        <div class="disease-tag">病毒性肝炎</div>
+                        <div class="disease-tag">脂肪肝</div>
+                        <div class="disease-tag">酒精性肝病</div>
+                        <div class="disease-tag">药物性肝损伤</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 指标数据库
+        const indicatorData = {
+            alt: {
+                name: '谷丙转氨酶 (ALT)',
+                function: 'ALT主要存在于肝细胞中，参与氨基酸代谢。当肝细胞受损时，ALT会释放入血液，是诊断肝脏疾病的重要指标。',
+                range: '7-40 U/L',
+                diseases: ['病毒性肝炎', '脂肪肝', '酒精性肝病', '药物性肝损伤', '肝硬化']
+            },
+            ast: {
+                name: '谷草转氨酶 (AST)',
+                function: 'AST存在于心脏、肝脏、骨骼肌等组织中，参与氨基酸代谢。AST升高可能提示心脏或肝脏损伤。',
+                range: '13-35 U/L',
+                diseases: ['心肌梗死', '肝炎', '肝硬化', '肌肉损伤', '溶血']
+            },
+            albumin: {
+                name: '白蛋白 (Albumin)',
+                function: '白蛋白是血浆中含量最多的蛋白质，由肝脏合成。具有维持血浆胶体渗透压、运输各种物质的功能。',
+                range: '40-55 g/L',
+                diseases: ['肝硬化', '营养不良', '肾病综合征', '慢性消耗性疾病']
+            }
+        };
+
+        // 器官对应的指标
+        const organIndicators = {
+            liver: ['indicator1', 'indicator2', 'indicator3'],
+            heart: [],
+            lung: [],
+            kidney: [],
+            stomach: []
+        };
+
+        let currentOrgan = null;
+        let canvas, ctx;
+
+        // 初始化
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'flex';
+                initCanvas();
+            }, 1500);
+        });
+
+        function initCanvas() {
+            canvas = document.getElementById('bodyCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // 设置画布大小
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 绘制3D人体轮廓（简化版）
+            drawBody();
+        }
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            if (ctx) drawBody();
+        }
+
+        function drawBody() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // 绘制人体轮廓
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+            ctx.lineWidth = 2;
+            
+            // 头部
+            ctx.beginPath();
+            ctx.arc(centerX, centerY - 150, 40, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 躯干
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, 60, 120, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 手臂
+            ctx.beginPath();
+            ctx.moveTo(centerX - 60, centerY - 80);
+            ctx.lineTo(centerX - 100, centerY);
+            ctx.moveTo(centerX + 60, centerY - 80);
+            ctx.lineTo(centerX + 100, centerY);
+            ctx.stroke();
+            
+            // 腿部
+            ctx.beginPath();
+            ctx.moveTo(centerX - 30, centerY + 120);
+            ctx.lineTo(centerX - 40, centerY + 220);
+            ctx.moveTo(centerX + 30, centerY + 120);
+            ctx.lineTo(centerX + 40, centerY + 220);
+            ctx.stroke();
+            
+            // 如果选中器官，高亮显示
+            if (currentOrgan) {
+                drawOrganHighlight(currentOrgan);
+            }
+        }
+
+        function drawOrganHighlight(organ) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            ctx.fillStyle = 'rgba(0, 255, 136, 0.3)';
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 3;
+            
+            // 根据器官绘制不同位置
+            switch(organ) {
+                case 'heart':
+                    ctx.beginPath();
+                    ctx.arc(centerX - 20, centerY - 40, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                case 'liver':
+                    ctx.beginPath();
+                    ctx.ellipse(centerX + 20, centerY + 20, 40, 30, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                case 'lung':
+                    ctx.beginPath();
+                    ctx.ellipse(centerX - 30, centerY - 30, 20, 40, 0, 0, Math.PI * 2);
+                    ctx.ellipse(centerX + 30, centerY - 30, 20, 40, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                case 'kidney':
+                    ctx.beginPath();
+                    ctx.ellipse(centerX - 40, centerY + 40, 15, 25, -0.3, 0, Math.PI * 2);
+                    ctx.ellipse(centerX + 40, centerY + 40, 15, 25, 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+                case 'stomach':
+                    ctx.beginPath();
+                    ctx.ellipse(centerX - 10, centerY + 10, 30, 35, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    break;
+            }
+        }
+
+        // 图层滑块
+        const layerSlider = document.getElementById('layerSlider');
+        const layerName = document.getElementById('layerName');
+        const layerNames = ['骨骼', '内脏', '肌肉', '皮肤'];
+        
+        layerSlider.addEventListener('input', function() {
+            layerName.textContent = layerNames[this.value];
+            // 这里可以添加不同图层的视觉效果
+        });
+
+        // 器官点击
+        document.querySelectorAll('.organ-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除其他活动状态
+                document.querySelectorAll('.organ-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                const organ = this.dataset.organ;
+                currentOrgan = organ;
+                
+                // 重绘高亮器官
+                drawBody();
+                
+                // 显示对应的指标小球
+                document.querySelectorAll('.indicator-sphere').forEach(sphere => {
+                    sphere.classList.remove('show');
+                });
+                
+                if (organIndicators[organ]) {
+                    organIndicators[organ].forEach(id => {
+                        const sphere = document.getElementById(id);
+                        if (sphere) {
+                            sphere.classList.add('show');
+                        }
+                    });
+                }
+                
+                // 隐藏气泡
+                document.getElementById('infoBubble').classList.remove('show');
+            });
+        });
+
+        // 指标小球点击/悬停
+        document.querySelectorAll('.indicator-sphere').forEach(sphere => {
+            sphere.addEventListener('click', function(e) {
+                const indicator = this.dataset.indicator;
+                const data = indicatorData[indicator];
+                
+                if (data) {
+                    const bubble = document.getElementById('infoBubble');
+                    
+                    // 更新气泡内容
+                    document.getElementById('bubbleTitle').textContent = data.name;
+                    document.getElementById('bubbleFunction').textContent = data.function;
+                    document.getElementById('bubbleRange').textContent = data.range;
+                    
+                    const diseasesHtml = data.diseases.map(d => 
+                        `<div class="disease-tag">${d}</div>`
+                    ).join('');
+                    document.getElementById('bubbleDiseases').innerHTML = diseasesHtml;
+                    
+                    // 定位气泡
+                    const rect = this.getBoundingClientRect();
+                    bubble.style.left = (rect.right + 20) + 'px';
+                    bubble.style.top = rect.top + 'px';
+                    
+                    // 显示气泡
+                    bubble.classList.add('show');
+                }
+            });
+        });
+
+        // 点击画布外隐藏气泡
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.indicator-sphere') && !e.target.closest('.info-bubble')) {
+                document.getElementById('infoBubble').classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>

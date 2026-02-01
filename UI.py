@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import json
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 app.secret_key = 'your-secret-key-here'
 
 # 检验项目分类数据
@@ -11,7 +11,7 @@ test_categories = [
     {"id": "immune", "name": "免疫指标", "icon": "shield-alt"},
     {"id": "clinical", "name": "临检指标", "icon": "stethoscope"},
     {"id": "microbiology", "name": "微生物指标", "icon": "virus"},
-    {"id": "molecular", "name": "分子大指标", "icon": "dna"},
+    {"id": "molecular", "name": "分子指标", "icon": "dna"},
     {"id": "ct", "name": "CT图像", "icon": "x-ray"},
     {"id": "mr", "name": "MR图像", "icon": "magnet"},
     {"id": "ultrasound", "name": "彩超", "icon": "wave-square"}
@@ -95,6 +95,56 @@ basic_diseases = [
 bad_habits = [
     "吸烟", "喝酒", "熬夜", "缺乏运动", "不健康饮食"
 ]
+
+# 医院价格数据（Mock Data）
+hospital_prices = {
+    "血常规": [
+        {"name": "中山大学孙逸仙纪念医院", "type": "public", "distance": "1.2km", "price": 25, "rating": 4.9, "department": "检验科", "wait_time": "30分钟", "booking_status": "可预约"},
+        {"name": "广东省人民医院", "type": "public", "distance": "2.5km", "price": 28, "rating": 4.8, "department": "检验科", "wait_time": "45分钟", "booking_status": "可预约"},
+        {"name": "广州医科大学附属第一医院", "type": "public", "distance": "3.1km", "price": 26, "rating": 4.7, "department": "检验科", "wait_time": "40分钟", "booking_status": "可预约"},
+        {"name": "美年大健康体检中心", "type": "private", "distance": "800m", "price": 45, "rating": 4.5, "department": "体检中心", "wait_time": "即约即检", "booking_status": "可预约"}
+    ],
+    "胸部CT": [
+        {"name": "中山大学孙逸仙纪念医院", "type": "public", "distance": "1.2km", "price": 320, "rating": 4.9, "department": "影像科", "wait_time": "2-3天", "booking_status": "可预约"},
+        {"name": "广东省人民医院", "type": "public", "distance": "2.5km", "price": 350, "rating": 4.8, "department": "放射科", "wait_time": "3-5天", "booking_status": "预约已满"},
+        {"name": "广州医科大学附属第一医院", "type": "public", "distance": "3.1km", "price": 310, "rating": 4.7, "department": "影像中心", "wait_time": "2-4天", "booking_status": "可预约"},
+        {"name": "爱康国宾体检中心", "type": "private", "distance": "1.8km", "price": 580, "rating": 4.6, "department": "影像科", "wait_time": "当天可检", "booking_status": "可预约"}
+    ],
+    "心电图": [
+        {"name": "中山大学孙逸仙纪念医院", "type": "public", "distance": "1.2km", "price": 30, "rating": 4.9, "department": "心电图室", "wait_time": "20分钟", "booking_status": "可预约"},
+        {"name": "广东省人民医院", "type": "public", "distance": "2.5km", "price": 32, "rating": 4.8, "department": "功能检查科", "wait_time": "30分钟", "booking_status": "可预约"},
+        {"name": "广州医科大学附属第一医院", "type": "public", "distance": "3.1km", "price": 28, "rating": 4.7, "department": "心电图室", "wait_time": "25分钟", "booking_status": "可预约"},
+        {"name": "慈铭体检中心", "type": "private", "distance": "1.5km", "price": 50, "rating": 4.4, "department": "检查科", "wait_time": "即时检查", "booking_status": "可预约"}
+    ],
+    "核磁共振": [
+        {"name": "中山大学孙逸仙纪念医院", "type": "public", "distance": "1.2km", "price": 880, "rating": 4.9, "department": "MR室", "wait_time": "5-7天", "booking_status": "可预约"},
+        {"name": "广东省人民医院", "type": "public", "distance": "2.5km", "price": 920, "rating": 4.8, "department": "磁共振科", "wait_time": "7-10天", "booking_status": "预约已满"},
+        {"name": "广州医科大学附属第一医院", "type": "public", "distance": "3.1km", "price": 850, "rating": 4.7, "department": "影像中心", "wait_time": "5-8天", "booking_status": "可预约"},
+        {"name": "瑞慈体检中心", "type": "private", "distance": "2.2km", "price": 1580, "rating": 4.5, "department": "影像科", "wait_time": "1-2天", "booking_status": "可预约"}
+    ],
+    "腹部B超": [
+        {"name": "中山大学孙逸仙纪念医院", "type": "public", "distance": "1.2km", "price": 120, "rating": 4.9, "department": "超声科", "wait_time": "1-2天", "booking_status": "可预约"},
+        {"name": "广东省人民医院", "type": "public", "distance": "2.5km", "price": 130, "rating": 4.8, "department": "超声医学科", "wait_time": "2-3天", "booking_status": "可预约"},
+        {"name": "广州医科大学附属第一医院", "type": "public", "distance": "3.1km", "price": 115, "rating": 4.7, "department": "超声科", "wait_time": "1-3天", "booking_status": "可预约"},
+        {"name": "美年大健康体检中心", "type": "private", "distance": "800m", "price": 200, "rating": 4.5, "department": "超声科", "wait_time": "当天可检", "booking_status": "可预约"}
+    ],
+    "肝功能": [
+        {"name": "中山大学孙逸仙纪念医院", "type": "public", "distance": "1.2km", "price": 80, "rating": 4.9, "department": "检验科", "wait_time": "1天出报告", "booking_status": "可预约"},
+        {"name": "广东省人民医院", "type": "public", "distance": "2.5km", "price": 85, "rating": 4.8, "department": "检验科", "wait_time": "1天出报告", "booking_status": "可预约"},
+        {"name": "广州医科大学附属第一医院", "type": "public", "distance": "3.1km", "price": 78, "rating": 4.7, "department": "检验科", "wait_time": "1天出报告", "booking_status": "可预约"},
+        {"name": "爱康国宾体检中心", "type": "private", "distance": "1.8km", "price": 120, "rating": 4.6, "department": "检验科", "wait_time": "当天出报告", "booking_status": "可预约"}
+    ]
+}
+
+# 检查项目关键词映射（用于识别AI建议的检查项目）
+check_item_keywords = {
+    "血常规": ["血常规", "血液检查", "血细胞"],
+    "胸部CT": ["胸部CT", "胸部 CT", "胸CT", "CT胸部", "肺部CT"],
+    "心电图": ["心电图", "ECG", "心电"],
+    "核磁共振": ["核磁", "核磁共振", "MRI", "磁共振"],
+    "腹部B超": ["腹部B超", "腹部超声", "B超", "彩超"],
+    "肝功能": ["肝功能", "肝功", "转氨酶"]
+}
 
 @app.route('/')
 def index():
@@ -314,6 +364,181 @@ def search():
                 results.append(item)
     
     return render_template('search_results.html', query=query, results=results, categories=test_categories)
+
+@app.route('/test-selection')
+def test_selection():
+    return render_template('test_selection.html', categories=test_categories, data=sample_data)
+
+@app.route('/chat')
+def chat():
+    user_info = session.get('user_info', {})
+    return render_template('chat.html', user_info=user_info)
+
+@app.route('/body_explorer')
+def body_explorer():
+    return render_template('body_explorer.html')
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    import requests
+    
+    data = request.get_json()
+    user_message = data.get('message', '')
+    image_base64 = data.get('image', None)
+    
+    # 阶跃星辰 API配置
+    api_key = '7603qS82OGbNVinkQCEeNAk6wTCHWJof0vCGJ2u6fwVNHqQj1yGl3rpoQmjnzMVtP'
+    url = 'https://api.stepfun.com/v1/chat/completions'
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {api_key}'
+    }
+    
+    # 获取用户基本信息
+    user_info = session.get('user_info', {})
+    
+    # 构建系统提示词，包含用户信息
+    system_prompt = '''你是"小鹰"，中山大学孙逸仙纪念医院的专业导诊助手。你的任务是为用户提供病症分析、检查建议和就医推荐。
+
+【格式约束 - 必须严格遵守】
+1. 绝对禁止使用Markdown语法（不要用 # 标题、** 加粗、- 列表、> 引用等符号）
+2. 小标题必须使用中文方括号【】包裹，如【1. 疑似疾病分析】
+3. 列表项使用数字 1. 2. 3. 格式，每项另起一行
+4. 段落之间空一行
+5. 不要使用任何特殊符号（除了中文标点和数字）
+
+【输出结构 - 必须包含以下三部分】
+当用户咨询具体病症时，必须按以下结构回复：
+
+【1. 疑似疾病分析】
+列出3个可能的疾病及其可能性（用百分比表示），简要说明判断依据。
+格式示例：
+1. 冠心病（可能性40%）：胸闷气短是典型症状，需排查心血管问题
+2. 呼吸系统疾病（可能性30%）：可能存在肺部或气道问题
+3. 焦虑症（可能性20%）：精神因素也可能引起类似症状
+
+【2. 建议检验项目与科室】
+明确说明应该挂什么科室，需要做哪些检查（必须包含具体检查项目名称，如"胸部CT"、"心电图"、"血常规"等）。
+格式示例：
+建议挂号科室：心内科
+建议检查项目：
+1. 心电图 - 初步评估心脏功能
+2. 胸部CT - 排查肺部及心脏结构异常
+3. 血常规 - 检查是否存在感染或贫血
+
+【3. 就医推荐】
+优先推荐中山大学孙逸仙纪念医院，然后推荐2-3家其他医院。需说明推荐理由和预约方式。
+格式示例：
+优先推荐：中山大学孙逸仙纪念医院
+推荐理由：心血管科是国家重点专科，诊疗水平全国领先
+预约方式：可通过医院官方微信公众号或114平台预约
+
+其他推荐医院：
+1. 广东省人民医院 - 综合实力强，心内科经验丰富
+2. 广州医科大学附属第一医院 - 呼吸内科为国家重点学科
+
+【重要提醒】
+如果用户只是打招呼或咨询一般健康问题（非具体病症），可以简短回复，不需要按上述三部分结构输出。
+只有在用户描述具体症状（如疼痛、不适、异常检查结果等）时，才启用三部分结构化输出。'''
+    
+    if user_info:
+        system_prompt += f"\n\n【用户基本信息】（请在分析时参考这些信息，不要再询问）"
+        system_prompt += f"\n性别：{user_info.get('gender', '未知')}"
+        system_prompt += f"\n年龄：{user_info.get('age', '未知')}岁"
+        system_prompt += f"\n身高：{user_info.get('height', '未知')}cm"
+        system_prompt += f"\n体重：{user_info.get('weight', '未知')}kg"
+        system_prompt += f"\nBMI：{user_info.get('bmi', '未知')}"
+        system_prompt += f"\n年龄段：{user_info.get('age_group', '未知')}"
+    
+    # 构建用户消息内容（支持图片）
+    if image_base64:
+        # 打印调试信息
+        print(f"收到图片数据，长度: {len(image_base64)}, 前50字符: {image_base64[:50]}")
+        
+        # 使用step-1v-32k模型处理图片（阶跃星辰的视觉模型）
+        user_content = [
+            {
+                'type': 'text',
+                'text': user_message
+            },
+            {
+                'type': 'image_url',
+                'image_url': {
+                    'url': image_base64
+                }
+            }
+        ]
+        model = 'step-1v-32k'
+        print(f"使用模型: {model}")
+    else:
+        # 纯文本消息
+        user_content = user_message
+        model = 'step-1-8k'
+    
+    payload = {
+        'model': model,
+        'messages': [
+            {
+                'role': 'system',
+                'content': system_prompt
+            },
+            {
+                'role': 'user',
+                'content': user_content
+            }
+        ],
+        'temperature': 0.7,
+        'top_p': 0.9
+    }
+    
+    try:
+        print(f"发送请求到API，模型: {payload['model']}")
+        response = requests.post(url, headers=headers, json=payload, timeout=600)
+        response.raise_for_status()
+        result = response.json()
+        
+        print(f"API响应成功")
+        ai_response = result['choices'][0]['message']['content']
+        return {'success': True, 'response': ai_response}
+    
+    except requests.exceptions.RequestException as e:
+        error_msg = str(e)
+        print(f"API请求失败: {error_msg}")
+        if hasattr(e.response, 'text'):
+            print(f"响应内容: {e.response.text}")
+            error_msg += f" | 响应: {e.response.text}"
+        return {'success': False, 'error': error_msg}, 500
+    except Exception as e:
+        error_msg = f'处理请求时出错: {str(e)}'
+        print(error_msg)
+        return {'success': False, 'error': error_msg}, 500
+
+@app.route('/api/hospital_prices', methods=['POST'])
+def get_hospital_prices():
+    """获取医院价格数据"""
+    data = request.get_json()
+    check_item = data.get('checkItem', '')
+    
+    # 查找匹配的检查项目
+    matched_item = None
+    for item_name, keywords in check_item_keywords.items():
+        for keyword in keywords:
+            if keyword in check_item:
+                matched_item = item_name
+                break
+        if matched_item:
+            break
+    
+    # 返回对应的医院价格数据
+    if matched_item and matched_item in hospital_prices:
+        return {
+            'success': True,
+            'checkItem': matched_item,
+            'hospitals': hospital_prices[matched_item]
+        }
+    else:
+        return {'success': False, 'message': '未找到该检查项目的价格信息'}
 
 if __name__ == '__main__':
     app.run(debug=True)
