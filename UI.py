@@ -10,7 +10,7 @@ test_categories = [
     {"id": "immune", "name": "免疫指标", "icon": "shield-alt"},
     {"id": "clinical", "name": "临检指标", "icon": "stethoscope"},
     {"id": "microbiology", "name": "微生物指标", "icon": "virus"},
-    {"id": "molecular", "name": "分子指标", "icon": "dna"},
+    {"id": "molecular", "name": "分子大指标", "icon": "dna"},
     {"id": "ct", "name": "CT图像", "icon": "x-ray"},
     {"id": "mr", "name": "MR图像", "icon": "magnet"},
     {"id": "ultrasound", "name": "彩超", "icon": "wave-square"}
