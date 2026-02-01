@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索结果 - 逸仙智检</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        neutral: '#6B7280',
+                        'primary-light': '#EFF6FF',
+                        'primary-dark': '#2563EB'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+            }
+            .btn-secondary {
+                @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary-light transition-colors duration-200;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">逸仙智检</span>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-primary bg-primary-light">首页</a>
+                            <a href="/about" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary-light transition-colors">关于我们</a>
+                            <a href="/services" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary-light transition-colors">服务项目</a>
+                            <a href="/contact" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary hover:bg-primary-light transition-colors">联系我们</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 搜索框 -->
+    <div class="bg-gradient-to-r from-primary to-primary-dark text-white py-12 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">智能检验项目管理系统</h1>
+            <p class="text-lg mb-8">快速查找、了解和推荐检验项目</p>
+            <form action="/search" method="POST" class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+                <input type="text" name="query" placeholder="搜索检验项目..." class="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" value="{{ query }}">
+                <button type="submit" class="btn-primary whitespace-nowrap">
+                    <i class="fa fa-search mr-2"></i>搜索
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div class="py-8 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- 菜单框 -->
+                <div class="lg:w-1/4">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-bold mb-4 text-gray-800">检验项目分类</h2>
+                        <ul class="space-y-2">
+                            {% for category in categories %}
+                            <li>
+                                <a href="/#{{ category.id }}" class="flex items-center p-3 rounded-lg hover:bg-primary-light transition-colors">
+                                    <i class="fa fa-{{ category.icon }} text-primary mr-3"></i>
+                                    <span class="text-gray-700">{{ category.name }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 搜索结果 -->
+                <div class="lg:w-3/4">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-bold mb-6 text-gray-800">
+                            <i class="fa fa-search text-primary mr-2"></i>
+                            搜索结果: "{{ query }}"
+                        </h2>
+                        
+                        {% if results %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for item in results %}
+                            <div class="border border-gray-200 rounded-lg p-4 card-hover">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ item.name }}</h3>
+                                    <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                                        {{ item.category }}
+                                    </span>
+                                </div>
+                                <p class="text-gray-600 mb-3">{{ item.description }}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                                        {{ item.recommendation }}
+                                    </span>
+                                    <button class="btn-secondary text-sm">
+                                        <i class="fa fa-info-circle mr-1"></i>详情
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-12">
+                            <i class="fa fa-search text-gray-400 text-4xl mb-4"></i>
+                            <h3 class="text-lg font-semibold mb-2 text-gray-800">未找到相关结果</h3>
+                            <p class="text-gray-600 mb-6">请尝试使用其他关键词搜索</p>
+                            <a href="/" class="btn-primary">
+                                <i class="fa fa-home mr-2"></i>返回首页
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                        <span class="text-xl font-bold">逸仙智检</span>
+                    </div>
+                    <p class="text-gray-400">
+                        智能检验项目管理系统，为您提供专业的医学检验信息和服务。
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="text-gray-400 hover:text-primary transition-colors">首页</a></li>
+                        <li><a href="/#about" class="text-gray-400 hover:text-primary transition-colors">关于我们</a></li>
+                        <li><a href="/#services" class="text-gray-400 hover:text-primary transition-colors">服务项目</a></li>
+                        <li><a href="/#contact" class="text-gray-400 hover:text-primary transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">联系我们</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fa fa-phone mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">020-12345678</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">contact@yixianzhijian.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 逸仙智检. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
