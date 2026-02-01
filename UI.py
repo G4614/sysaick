@@ -182,7 +182,7 @@ def submit_user_info():
         'age_group': age_group
     }
     
-    return redirect(url_for('select_option'))
+    return redirect(url_for('chat'))
 
 @app.route('/select_option')
 def select_option():
