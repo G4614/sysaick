@@ -11,12 +11,12 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981',
-                        accent: '#8B5CF6',
+                        primary: '#006400', // 中大绿
+                        secondary: '#32CD32',
+                        accent: '#228B22',
                         neutral: '#6B7280',
-                        'primary-light': '#EFF6FF',
-                        'primary-dark': '#2563EB'
+                        'primary-light': '#F0FFF0',
+                        'primary-dark': '#004d00'
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif']
@@ -31,15 +31,27 @@
                 content-visibility: auto;
             }
             .btn-primary {
-                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+                @apply bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors duration-200 shadow-md hover:shadow-lg font-medium;
             }
             .btn-secondary {
-                @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary-light transition-colors duration-200;
+                @apply bg-white border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary-light transition-colors duration-200 shadow-sm hover:shadow font-medium;
+            }
+            .info-card {
+                @apply bg-white border border-gray-200 rounded-xl p-6 shadow-sm;
+            }
+            .analysis-card {
+                @apply bg-white border border-gray-200 rounded-xl p-8 shadow-sm;
+            }
+            .abnormal-item {
+                @apply border-l-4 border-yellow-400 pl-6 py-4 bg-yellow-50/50 rounded-r-lg transition-all duration-300 hover:shadow-md;
+            }
+            .recommendation-item {
+                @apply flex items-start space-x-3 py-3 border-b border-gray-100 last:border-0;
             }
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-white font-sans">
     <!-- 导航栏 -->
     <nav class="bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,18 +62,38 @@
                         <span class="text-xl font-bold text-gray-800">逸仙智检</span>
                     </div>
                 </div>
+                <div class="flex items-center">
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-6">
+                            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary-light transition-colors">首页</a>
+                            <a href="/input" class="px-3 py-2 rounded-md text-sm font-medium text-primary bg-primary-light">开始评估</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- 报告分析结果 -->
-    <div class="py-12 px-4">
+    <div class="py-16 px-4">
         <div class="max-w-4xl mx-auto">
-            <h2 class="text-2xl font-bold text-center mb-10 text-gray-800">报告分析结果</h2>
+            <div class="text-center mb-12">
+                <div class="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa fa-bar-chart text-primary text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-4 text-gray-800">报告分析结果</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">基于您的体检报告，我们为您提供了详细的健康分析和建议</p>
+            </div>
             
             <!-- 用户信息卡片 -->
-            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-8">
-                <div class="flex flex-wrap gap-4">
+            <div class="info-card mb-10">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center mr-3">
+                        <i class="fa fa-user text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">用户信息</h3>
+                </div>
+                <div class="flex flex-wrap gap-6">
                     <div class="flex items-center">
                         <span class="text-gray-600 mr-2">性别：</span>
                         <span class="font-medium">{{ user_info.gender }}</span>
@@ -86,12 +118,14 @@
             </div>
 
             <!-- 报告信息卡片 -->
-            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-8">
-                <h3 class="text-lg font-medium mb-4 text-gray-800">
-                    <i class="fa fa-file-text-o mr-2 text-primary"></i>
-                    报告信息
-                </h3>
-                <div class="flex flex-wrap gap-4">
+            <div class="info-card mb-10">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center mr-3">
+                        <i class="fa fa-file-text-o text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">报告信息</h3>
+                </div>
+                <div class="flex flex-wrap gap-6">
                     {% if report_info.filename %}
                     <div class="flex items-center">
                         <span class="text-gray-600 mr-2">文件名：</span>
@@ -114,31 +148,43 @@
             </div>
 
             <!-- 分析结果 -->
-            <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-                <h3 class="text-lg font-medium mb-4 text-gray-800">
-                    <i class="fa fa-bar-chart mr-2 text-primary"></i>
-                    分析结果
-                </h3>
+            <div class="analysis-card mb-10">
+                <div class="flex items-center mb-8">
+                    <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center mr-3">
+                        <i class="fa fa-bar-chart text-primary text-lg"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">分析结果</h3>
+                </div>
                 
                 <!-- 总结 -->
-                <div class="mb-6">
-                    <h4 class="font-medium mb-2 text-gray-700">总结</h4>
-                    <p class="text-gray-600">{{ analysis_result.summary }}</p>
+                <div class="mb-10">
+                    <div class="flex items-center mb-4">
+                        <div class="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center mr-2">
+                            <i class="fa fa-info-circle text-primary text-xs"></i>
+                        </div>
+                        <h4 class="text-lg font-medium text-gray-800">总结</h4>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">{{ analysis_result.summary }}</p>
                 </div>
                 
                 <!-- 异常指标 -->
                 {% if analysis_result.abnormal_items %}
-                <div class="mb-6">
-                    <h4 class="font-medium mb-2 text-gray-700">异常指标</h4>
+                <div class="mb-10">
+                    <div class="flex items-center mb-6">
+                        <div class="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center mr-2">
+                            <i class="fa fa-exclamation-triangle text-primary text-xs"></i>
+                        </div>
+                        <h4 class="text-lg font-medium text-gray-800">异常指标</h4>
+                    </div>
                     <div class="space-y-4">
                         {% for item in analysis_result.abnormal_items %}
-                        <div class="border-l-4 border-yellow-400 pl-4 py-2">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="font-medium">{{ item.name }}</span>
-                                <span class="text-red-600 font-medium">{{ item.value }}</span>
+                        <div class="abnormal-item">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-semibold text-gray-800">{{ item.name }}</span>
+                                <span class="text-red-600 font-semibold">{{ item.value }}</span>
                             </div>
-                            <div class="text-sm text-gray-500 mb-1">参考范围：{{ item.reference }}</div>
-                            <div class="text-sm text-gray-600">{{ item.advice }}</div>
+                            <div class="text-sm text-gray-500 mb-2">参考范围：{{ item.reference }}</div>
+                            <div class="text-sm text-gray-700">{{ item.advice }}</div>
                         </div>
                         {% endfor %}
                     </div>
@@ -148,18 +194,28 @@
                 <!-- 建议 -->
                 {% if analysis_result.recommendations %}
                 <div>
-                    <h4 class="font-medium mb-2 text-gray-700">健康建议</h4>
-                    <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <div class="flex items-center mb-6">
+                        <div class="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center mr-2">
+                            <i class="fa fa-lightbulb-o text-primary text-xs"></i>
+                        </div>
+                        <h4 class="text-lg font-medium text-gray-800">健康建议</h4>
+                    </div>
+                    <div class="space-y-1">
                         {% for recommendation in analysis_result.recommendations %}
-                        <li>{{ recommendation }}</li>
+                        <div class="recommendation-item">
+                            <div class="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fa fa-check text-primary text-xs"></i>
+                            </div>
+                            <div class="text-gray-700">{{ recommendation }}</div>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
                 {% endif %}
             </div>
 
             <!-- 操作按钮 -->
-            <div class="flex justify-center space-x-4">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="/analyze_report" class="btn-secondary">
                     <i class="fa fa-arrow-left mr-2"></i>重新上传
                 </a>
@@ -171,8 +227,12 @@
     </div>
 
     <!-- 页脚 -->
-    <footer class="bg-white py-6 px-4 border-t border-gray-200 mt-12">
+    <footer class="bg-gray-50 py-8 px-4 border-t border-gray-200 mt-16">
         <div class="max-w-7xl mx-auto text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                <span class="text-xl font-bold text-gray-800">逸仙智检</span>
+            </div>
             <p class="text-sm text-gray-500">
                 &copy; 2026 逸仙智检. 保留所有权利.
             </p>

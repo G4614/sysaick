@@ -11,12 +11,12 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981',
-                        accent: '#8B5CF6',
+                        primary: '#006400', // 中大绿
+                        secondary: '#32CD32',
+                        accent: '#228B22',
                         neutral: '#6B7280',
-                        'primary-light': '#EFF6FF',
-                        'primary-dark': '#2563EB'
+                        'primary-light': '#F0FFF0',
+                        'primary-dark': '#004d00'
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif']
@@ -31,24 +31,36 @@
                 content-visibility: auto;
             }
             .btn-primary {
-                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+                @apply bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors duration-200 shadow-md hover:shadow-lg font-medium;
             }
             .btn-secondary {
-                @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary-light transition-colors duration-200;
+                @apply bg-white border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary-light transition-colors duration-200 shadow-sm hover:shadow font-medium;
             }
             .package-card {
-                @apply bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 hover:shadow-lg hover:border-primary;
+                @apply bg-white border border-gray-200 rounded-xl p-8 transition-all duration-300 hover:shadow-lg hover:border-primary hover:bg-primary-light/5;
             }
             .checkbox-group {
-                @apply space-y-3;
+                @apply space-y-4;
             }
             .checkbox-item {
                 @apply flex items-center;
             }
+            .form-input {
+                @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+            }
+            .form-label {
+                @apply block text-gray-700 font-medium mb-3 text-sm;
+            }
+            .info-tag {
+                @apply bg-primary-light text-primary px-3 py-1 rounded-full text-sm font-medium;
+            }
+            .item-tag {
+                @apply bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs hover:bg-primary-light hover:text-primary transition-colors duration-200;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-white font-sans">
     <!-- 导航栏 -->
     <nav class="bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,25 +71,37 @@
                         <span class="text-xl font-bold text-gray-800">逸仙智检</span>
                     </div>
                 </div>
+                <div class="flex items-center">
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-6">
+                            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary-light transition-colors">首页</a>
+                            <a href="/input" class="px-3 py-2 rounded-md text-sm font-medium text-primary bg-primary-light">开始评估</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- 套餐选择 -->
-    <div class="py-12 px-4">
+    <div class="py-16 px-4">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-2xl font-bold text-center mb-10 text-gray-800">体检套餐选择</h2>
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 text-gray-800">体检套餐选择</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">根据您的年龄和健康状况，我们为您推荐以下体检套餐</p>
+            </div>
             
             <!-- 用户信息卡片 -->
-            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-8">
-                <div class="flex flex-wrap gap-4">
+            <div class="bg-white border border-gray-200 rounded-xl p-6 mb-12">
+                <div class="flex flex-wrap gap-6">
                     <div class="flex items-center">
                         <span class="text-gray-600 mr-2">性别：</span>
                         <span class="font-medium">{{ user_info.gender }}</span>
                     </div>
                     <div class="flex items-center">
                         <span class="text-gray-600 mr-2">年龄：</span>
-                        <span class="font-medium">{{ user_info.age }}岁 ({{ age_group }})</span>
+                        <span class="font-medium">{{ user_info.age }}岁</span>
+                        <span class="info-tag ml-2">{{ age_group }}</span>
                     </div>
                     <div class="flex items-center">
                         <span class="text-gray-600 mr-2">身高：</span>
@@ -97,25 +121,27 @@
             <div class="flex flex-col lg:flex-row gap-8">
                 <!-- 左侧：年龄推荐套餐 -->
                 <div class="lg:w-1/2">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="text-xl font-semibold mb-6 text-gray-800">
-                            <i class="fa fa-calendar mr-2 text-primary"></i>
-                            {{ age_group }}推荐套餐
-                        </h3>
+                    <div class="bg-white rounded-xl shadow-sm p-8">
+                        <div class="flex items-center mb-8">
+                            <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center mr-3">
+                                <i class="fa fa-calendar text-primary text-lg"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">{{ age_group }}推荐套餐</h3>
+                        </div>
                         
-                        <div class="space-y-6">
+                        <div class="space-y-8">
                             {% for package in packages %}
                             <div class="package-card">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h4 class="text-lg font-medium text-gray-800">{{ package.name }}</h4>
-                                    <span class="bg-primary-light text-primary px-3 py-1 rounded-full text-sm">{{ package['items']|length }}项</span>
+                                <div class="flex justify-between items-start mb-6">
+                                    <h4 class="text-lg font-semibold text-gray-800">{{ package.name }}</h4>
+                                    <span class="info-tag">{{ package['items']|length }}项</span>
                                 </div>
-                                <p class="text-gray-600 mb-4">{{ package.description }}</p>
-                                <div class="mb-4">
-                                    <h5 class="text-sm font-medium text-gray-700 mb-2">包含项目：</h5>
-                                    <div class="flex flex-wrap gap-2">
+                                <p class="text-gray-600 mb-6">{{ package.description }}</p>
+                                <div class="mb-6">
+                                    <h5 class="text-sm font-medium text-gray-700 mb-3">包含项目：</h5>
+                                    <div class="flex flex-wrap gap-3">
                                         {% for item in package['items'] %}
-                                        <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">{{ item }}</span>
+                                        <span class="item-tag">{{ item }}</span>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -132,13 +158,15 @@
 
                 <!-- 右侧：健康状况和不良嗜好 -->
                 <div class="lg:w-1/2">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="text-xl font-semibold mb-6 text-gray-800">
-                            <i class="fa fa-user-md mr-2 text-primary"></i>
-                            健康状况评估
-                        </h3>
+                    <div class="bg-white rounded-xl shadow-sm p-8">
+                        <div class="flex items-center mb-8">
+                            <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center mr-3">
+                                <i class="fa fa-user-md text-primary text-lg"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">健康状况评估</h3>
+                        </div>
                         
-                        <form action="/submit_health_assessment" method="POST" class="space-y-6">
+                        <form action="/submit_health_assessment" method="POST" class="space-y-8">
                             <!-- 基础疾病 -->
                             <div>
                                 <h4 class="text-lg font-medium mb-4 text-gray-700">基础疾病</h4>
@@ -146,7 +174,7 @@
                                     {% for disease in basic_diseases %}
                                     <div class="checkbox-item">
                                         <input type="checkbox" id="disease-{{ loop.index }}" name="diseases" value="{{ disease }}" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
-                                        <label for="disease-{{ loop.index }}" class="ml-2 text-gray-700">{{ disease }}</label>
+                                        <label for="disease-{{ loop.index }}" class="ml-3 text-gray-700 cursor-pointer">{{ disease }}</label>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -159,7 +187,7 @@
                                     {% for habit in bad_habits %}
                                     <div class="checkbox-item">
                                         <input type="checkbox" id="habit-{{ loop.index }}" name="habits" value="{{ habit }}" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
-                                        <label for="habit-{{ loop.index }}" class="ml-2 text-gray-700">{{ habit }}</label>
+                                        <label for="habit-{{ loop.index }}" class="ml-3 text-gray-700 cursor-pointer">{{ habit }}</label>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -169,14 +197,14 @@
                             <div>
                                 <h4 class="text-lg font-medium mb-4 text-gray-700">其他信息</h4>
                                 <div>
-                                    <label for="other-info" class="block text-gray-700 font-medium mb-2">补充说明（可选）</label>
-                                    <textarea id="other-info" name="other_info" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                                    <label for="other-info" class="form-label">补充说明（可选）</label>
+                                    <textarea id="other-info" name="other_info" rows="4" class="form-input"></textarea>
                                 </div>
                             </div>
 
                             <!-- 提交按钮 -->
-                            <div>
-                                <button type="submit" class="btn-primary w-full py-3 text-lg">
+                            <div class="pt-4">
+                                <button type="submit" class="btn-primary w-full text-lg">
                                     <i class="fa fa-arrow-right mr-2"></i>提交评估
                                 </button>
                             </div>
@@ -188,8 +216,12 @@
     </div>
 
     <!-- 页脚 -->
-    <footer class="bg-white py-6 px-4 border-t border-gray-200 mt-12">
+    <footer class="bg-gray-50 py-8 px-4 border-t border-gray-200">
         <div class="max-w-7xl mx-auto text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                <span class="text-xl font-bold text-gray-800">逸仙智检</span>
+            </div>
             <p class="text-sm text-gray-500">
                 &copy; 2026 逸仙智检. 保留所有权利.
             </p>

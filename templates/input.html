@@ -11,12 +11,12 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#10B981',
-                        accent: '#8B5CF6',
+                        primary: '#006400', // 中大绿
+                        secondary: '#32CD32',
+                        accent: '#228B22',
                         neutral: '#6B7280',
-                        'primary-light': '#EFF6FF',
-                        'primary-dark': '#2563EB'
+                        'primary-light': '#F0FFF0',
+                        'primary-dark': '#004d00'
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif']
@@ -31,15 +31,21 @@
                 content-visibility: auto;
             }
             .btn-primary {
-                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-200;
+                @apply bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors duration-200 shadow-md hover:shadow-lg font-medium;
             }
             .btn-secondary {
-                @apply bg-white border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary-light transition-colors duration-200;
+                @apply bg-white border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary-light transition-colors duration-200 shadow-sm hover:shadow font-medium;
+            }
+            .form-input {
+                @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+            }
+            .form-label {
+                @apply block text-gray-700 font-medium mb-3 text-sm;
             }
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-white font-sans">
     <!-- 导航栏 -->
     <nav class="bg-white shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,19 +56,33 @@
                         <span class="text-xl font-bold text-gray-800">逸仙智检</span>
                     </div>
                 </div>
+                <div class="flex items-center">
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-6">
+                            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary-light transition-colors">首页</a>
+                            <a href="/input" class="px-3 py-2 rounded-md text-sm font-medium text-primary bg-primary-light">开始评估</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- 用户信息输入 -->
-    <div class="py-12 px-4">
-        <div class="max-w-md mx-auto bg-white rounded-lg shadow-sm p-8">
-            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">用户信息输入</h2>
+    <div class="py-16 px-4">
+        <div class="max-w-md mx-auto bg-white rounded-xl shadow-sm p-8">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa fa-user text-primary text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">用户信息输入</h2>
+                <p class="text-gray-600 mt-2">请输入您的基本信息，以便我们为您提供个性化的健康评估</p>
+            </div>
             <form action="/submit_user_info" method="POST" class="space-y-6">
                 <!-- 性别 -->
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">性别</label>
-                    <div class="flex space-x-6">
+                    <label class="form-label">性别</label>
+                    <div class="flex space-x-8">
                         <label class="flex items-center">
                             <input type="radio" name="gender" value="男" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
                             <span class="ml-2 text-gray-700">男</span>
@@ -76,25 +96,25 @@
 
                 <!-- 年龄 -->
                 <div>
-                    <label for="age" class="block text-gray-700 font-medium mb-2">年龄（岁）</label>
-                    <input type="number" id="age" name="age" min="0" max="150" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    <label for="age" class="form-label">年龄（岁）</label>
+                    <input type="number" id="age" name="age" min="0" max="150" class="form-input" required>
                 </div>
 
                 <!-- 身高 -->
                 <div>
-                    <label for="height" class="block text-gray-700 font-medium mb-2">身高（厘米）</label>
-                    <input type="number" id="height" name="height" min="0" max="250" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    <label for="height" class="form-label">身高（厘米）</label>
+                    <input type="number" id="height" name="height" min="0" max="250" class="form-input" required>
                 </div>
 
                 <!-- 体重 -->
                 <div>
-                    <label for="weight" class="block text-gray-700 font-medium mb-2">体重（千克）</label>
-                    <input type="number" id="weight" name="weight" min="0" max="300" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    <label for="weight" class="form-label">体重（千克）</label>
+                    <input type="number" id="weight" name="weight" min="0" max="300" step="0.1" class="form-input" required>
                 </div>
 
                 <!-- 提交按钮 -->
-                <div>
-                    <button type="submit" class="btn-primary w-full py-3 text-lg">
+                <div class="pt-4">
+                    <button type="submit" class="btn-primary w-full text-lg">
                         <i class="fa fa-arrow-right mr-2"></i>下一步
                     </button>
                 </div>
@@ -103,8 +123,12 @@
     </div>
 
     <!-- 页脚 -->
-    <footer class="bg-white py-6 px-4 border-t border-gray-200 mt-12">
+    <footer class="bg-gray-50 py-8 px-4 border-t border-gray-200">
         <div class="max-w-7xl mx-auto text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fa fa-heartbeat text-primary text-2xl mr-2"></i>
+                <span class="text-xl font-bold text-gray-800">逸仙智检</span>
+            </div>
             <p class="text-sm text-gray-500">
                 &copy; 2026 逸仙智检. 保留所有权利.
             </p>
