@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import json
 
-app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'
+app = Flask(__name__, static_folder='static')
 
 # 检验项目分类数据
 test_categories = [
@@ -11,7 +10,7 @@ test_categories = [
     {"id": "immune", "name": "免疫指标", "icon": "shield-alt"},
     {"id": "clinical", "name": "临检指标", "icon": "stethoscope"},
     {"id": "microbiology", "name": "微生物指标", "icon": "virus"},
-    {"id": "molecular", "name": "分子大指标", "icon": "dna"},
+    {"id": "molecular", "name": "分子指标", "icon": "dna"},
     {"id": "ct", "name": "CT图像", "icon": "x-ray"},
     {"id": "mr", "name": "MR图像", "icon": "magnet"},
     {"id": "ultrasound", "name": "彩超", "icon": "wave-square"}
@@ -314,6 +313,14 @@ def search():
                 results.append(item)
     
     return render_template('search_results.html', query=query, results=results, categories=test_categories)
+
+@app.route('/test-selection')
+def test_selection():
+    return render_template('test_selection.html', categories=test_categories, data=sample_data)
+
+@app.route('/chat')
+def chat():
+    return render_template('chat.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
