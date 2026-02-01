@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for
 import json
 
 app = Flask(__name__, static_folder='static')
+app.secret_key = 'your-secret-key-here'
 
 # 检验项目分类数据
 test_categories = [
